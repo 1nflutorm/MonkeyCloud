@@ -13,22 +13,7 @@ import org.springframework.web.servlet.ModelAndView;
 @RestController
 @RequiredArgsConstructor
 public class AuthorisationController {
-
     private final AuthService authService;
-    @GetMapping("/login")
-    public ModelAndView login(){
-        ModelAndView modelAndView = new ModelAndView();
-        modelAndView.setViewName("login.html");
-        return modelAndView;
-    }
-
-    @GetMapping("/registration")
-    public ModelAndView registration(){
-        System.out.println("GET запрос страницы регистрации");
-        ModelAndView modelAndView = new ModelAndView();
-        modelAndView.setViewName("registration.html");
-        return modelAndView;
-    }
 
     @PostMapping("/registration")
     public ResponseEntity<?> registration(@RequestBody RegistrationUserDto registrationUserDto) {

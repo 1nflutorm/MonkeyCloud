@@ -36,17 +36,6 @@ public class AuthService {
     }
 
     public ResponseEntity<?> createNewUser(@RequestBody RegistrationUserDto registrationUserDto) {
-
-        /*try {
-            User user = userService.createNewUser(registrationUserDto);
-        } catch (IllegalArgumentException argEx) {
-            return new ResponseEntity<>(new AppError(HttpStatus.UNAUTHORIZED.value(), "Ошибка аргументов"), HttpStatus.UNAUTHORIZED);
-        }
-        catch (OptimisticLockingFailureException lockEx){
-            return new ResponseEntity<>(new AppError(HttpStatus.UNAUTHORIZED.value(), "Ошибка блокировки"), HttpStatus.UNAUTHORIZED);
-        }*/
-
-
         if (userService.findByUsername(registrationUserDto.getUsername()).isPresent()) {
             return new ResponseEntity<>(new AppError(HttpStatus.BAD_REQUEST.value(), "Пользователь с указанным именем уже существует"), HttpStatus.BAD_REQUEST);
         }

@@ -20,7 +20,7 @@ import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 
 @EnableWebSecurity
 @EnableGlobalMethodSecurity(securedEnabled = true)
-public class SecurityConfig implements WebMvcConfigurer{
+public class SecurityConfig implements WebMvcConfigurer {
     private UserService userService;
     private JwtRequestFilter jwtRequestFilter;
 
@@ -40,8 +40,7 @@ public class SecurityConfig implements WebMvcConfigurer{
                 .csrf().disable()
                 .cors().disable()
                 .authorizeRequests()
-                .antMatchers("/secured").authenticated()
-                .antMatchers("/info").authenticated()
+                .antMatchers("/").authenticated()
                 .antMatchers("/admin").hasRole("ADMIN")
                 .anyRequest().permitAll()
                 .and()

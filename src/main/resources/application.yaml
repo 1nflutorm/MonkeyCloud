@@ -8,7 +8,7 @@ jwt:
 spring:
   dataSource:
     driverClassName: org.postgresql.Driver
-    url: jdbc:postgresql://localhost:5432/TestUsers
+    url: jdbc:postgresql://localhost:5432/MonkeyCloud
     username: postgres
     password: admin
   jpa:
