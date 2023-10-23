@@ -11,23 +11,22 @@ import java.util.Collection;
 public class User {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Column(name = "id")
+    @Column(name = "user_id")
     private long user_id;
     @Column(name = "username")
     private String username;
-    @Column(name = "password")
+    @Column(name = "user_password")
     private String password;
-    @Column(name = "second_name")
+    @Column(name = "user_second_name ")
     private String second_name;
-    @Column(name = "name")
+    @Column(name = "user_first_name")
     private String name;
-    @Column(name = "last_name")
+    @Column(name = "user_father_name ")
     private String last_name;
-    @Column(name = "tg_id")
-    private int tg_id;
+
     @ManyToMany
     @JoinTable(
-            name = "users_roles",
+            name = "user_roles",
             joinColumns = @JoinColumn(name = "user_id"),
             inverseJoinColumns = @JoinColumn(name = "role_id")
     )
