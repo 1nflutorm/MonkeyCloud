@@ -8,7 +8,6 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-import org.springframework.web.servlet.ModelAndView;
 
 @RestController
 @RequiredArgsConstructor
@@ -18,7 +17,7 @@ public class AuthorisationController {
     @PostMapping("/registration")
     public ResponseEntity<?> registration(@RequestBody RegistrationUserDto registrationUserDto) {
         ResponseEntity<?> responseEntity = authService.createNewUser(registrationUserDto);
-        if(responseEntity.getStatusCode() == HttpStatus.BAD_REQUEST) {
+        if (responseEntity.getStatusCode() == HttpStatus.BAD_REQUEST) {
             return new ResponseEntity<>(new AppError(HttpStatus.BAD_REQUEST.value(), "Пользователь с указанным именем уже существует"), HttpStatus.BAD_REQUEST);
         }
         JwtRequest jwtRequest = new JwtRequest();
@@ -28,7 +27,7 @@ public class AuthorisationController {
     }
 
     @PostMapping("/login")
-    public ResponseEntity<?> createAuthToken(@RequestBody JwtRequest authRequest) {
+    public ResponseEntity<?> login(@RequestBody JwtRequest authRequest) {
         return authService.createAuthToken(authRequest);
     }
 }

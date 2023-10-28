@@ -38,7 +38,8 @@ public class UserService implements UserDetailsService {
     public void setPasswordEncoder(PasswordEncoder passwordEncoder) {
         this.passwordEncoder = passwordEncoder;
     }
-    public Optional<User> findByUsername(String username){
+
+    public Optional<User> findByUsername(String username) {
         return userRepository.findByUsername(username);
     }
 
