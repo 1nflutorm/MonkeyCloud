@@ -23,11 +23,12 @@ public class AuthorisationController {
         JwtRequest jwtRequest = new JwtRequest();
         jwtRequest.setUsername(registrationUserDto.getUsername());
         jwtRequest.setPassword(registrationUserDto.getPassword());
-        return authService.createAuthToken(jwtRequest);
+        ResponseEntity<?> token = authService.userAuthentification(jwtRequest);
+        return token;
     }
 
     @PostMapping("/login")
     public ResponseEntity<?> login(@RequestBody JwtRequest authRequest) {
-        return authService.createAuthToken(authRequest);
+        return authService.userAuthentification(authRequest);
     }
 }
