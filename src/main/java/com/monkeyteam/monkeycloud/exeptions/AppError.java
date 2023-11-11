@@ -5,7 +5,7 @@ import lombok.Data;
 import java.util.Date;
 
 @Data
-public class AppError extends Throwable{
+public class AppError {
     private int status;
     private String message;
     private Date timestamp;

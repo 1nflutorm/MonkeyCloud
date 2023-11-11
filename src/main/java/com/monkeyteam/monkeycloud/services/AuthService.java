@@ -1,11 +1,9 @@
 package com.monkeyteam.monkeycloud.services;
 
-import com.monkeyteam.monkeycloud.dtos.JwtRequest;
-import com.monkeyteam.monkeycloud.dtos.JwtResponse;
-import com.monkeyteam.monkeycloud.dtos.RegistrationUserDto;
-import com.monkeyteam.monkeycloud.dtos.UserDto;
+import com.monkeyteam.monkeycloud.dtos.*;
 import com.monkeyteam.monkeycloud.entities.User;
 import com.monkeyteam.monkeycloud.exeptions.AppError;
+import com.monkeyteam.monkeycloud.repositories.UserRepository;
 import com.monkeyteam.monkeycloud.utils.JwtTokenUtils;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
@@ -24,31 +22,9 @@ public class AuthService {
     private final UserService userService;
     private final JwtTokenUtils jwtTokenUtils;
     private final AuthenticationManager authenticationManager;
+    private final UserRepository userRepository;
 
-    /*public void userValidation (@RequestBody JwtRequest authRequest) throws AppError {
-        try {
-            authenticationManager.authenticate(new UsernamePasswordAuthenticationToken(authRequest.getUsername(), authRequest.getPassword()));
-        } catch (BadCredentialsException e) {
-            throw new AppError(HttpStatus.UNAUTHORIZED.value(), "Неправильный логин или пароль");
-        }
-    }
-
-    public ResponseEntity<?> createAuthToken(@RequestBody String username) {
-        UserDetails userDetails = userService.loadUserByUsername(username);
-        String token = jwtTokenUtils.generateToken(userDetails);
-        return ResponseEntity.ok(new JwtResponse(token));
-    }
-
-    public ResponseEntity<?> userAuthentification(@RequestBody JwtRequest authRequest){
-        try {
-            userValidation(authRequest);
-        } catch ( AppError error){
-            return new ResponseEntity<>(error, HttpStatus.UNAUTHORIZED);
-        }
-        return createAuthToken(authRequest.getUsername());
-    }*/
-
-    public ResponseEntity<?> userAuthentification(@RequestBody JwtRequest authRequest) {
+    public ResponseEntity<?> createAuthToken(@RequestBody JwtRequest authRequest) {
         try {
             authenticationManager.authenticate(new UsernamePasswordAuthenticationToken(authRequest.getUsername(), authRequest.getPassword()));
         } catch (BadCredentialsException e) {
@@ -57,7 +33,8 @@ public class AuthService {
         UserDetails userDetails = userService.loadUserByUsername(authRequest.getUsername());
         String token = jwtTokenUtils.generateToken(userDetails);
         System.out.println("Пользователь зашел");
-        return ResponseEntity.ok(new JwtResponse(token));
+        userRepository.setSessionActive(authRequest.getUsername());
+        return ResponseEntity.ok(new JwtResponse(authRequest.getUsername(), token));
     }
 
     public ResponseEntity<?> createNewUser(@RequestBody RegistrationUserDto registrationUserDto) {
@@ -67,5 +44,12 @@ public class AuthService {
         }
         User user = userService.createNewUser(registrationUserDto);
         return ResponseEntity.ok(new UserDto(user.getUser_id(), user.getUsername()));
+    }
+
+    public ResponseEntity<?> signout(String authHeaders){
+        String token = authHeaders.substring(7);
+        String username = jwtTokenUtils.getUsername(token);
+        userRepository.setSessionInactive(username);
+        return ResponseEntity.ok(new SessionControl(username, false));
     }
 }
