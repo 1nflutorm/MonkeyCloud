@@ -11,6 +11,11 @@ create table users
 create index users_username_index on users(username);
 --</Таблица пользователи>
 
+--<Добавление колонки "сессия">
+ALTER TABLE users
+    ADD COLUMN session boolean NOT NULL DEFAULT false;
+--</Добавление колонки "сессия">
+
 --<Таблица роли>
 create table roles
 (
