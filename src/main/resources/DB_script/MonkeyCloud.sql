@@ -186,7 +186,7 @@ create or replace function user_login_exists()
 --</тригер для проверки повторяющегося логина>
 
 --тестовые данные
-insert into users (user_id, user_login, user_password, user_first_name, user_second_name, user_father_name)
+insert into users (user_id, username, user_password, user_first_name, user_second_name, user_father_name)
 values 
 (
 	1, 

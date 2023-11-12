@@ -42,7 +42,8 @@ public class JwtTokenUtils {
     }
 
     public String getUsername(String token) {
-        return getAllClaimsFromToken(token).getSubject();
+        Claims claims = getAllClaimsFromToken(token);
+        return claims.getSubject();
     }
 
     public List<String> getRoles(String token) {
