@@ -2,10 +2,12 @@ package com.monkeyteam.monkeycloud.configs;
 
 
 import com.monkeyteam.monkeycloud.utils.JwtTokenUtils;
+import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.ExpiredJwtException;
 import io.jsonwebtoken.SignatureException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.http.HttpStatus;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -35,9 +37,13 @@ public class JwtRequestFilter extends OncePerRequestFilter {
             try {
                 username = jwtTokenUtils.getUsername(jwt);
             } catch (ExpiredJwtException e) {
-                log.debug("Время жизни токена вышло");
+                Claims claims = e.getClaims();
+                System.out.println("имя пользователя протухшего токена " + claims.getSubject());
+                response.sendError(408);//протух токен
+                return;
             } catch (SignatureException e) {
-                log.debug("Подпись неправильная");
+                response.sendError(403);//неправильная подпись
+                return;
             }
         }
         if (username != null && SecurityContextHolder.getContext().getAuthentication() == null) {

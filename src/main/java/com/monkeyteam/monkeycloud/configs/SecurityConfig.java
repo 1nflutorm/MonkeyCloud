@@ -40,7 +40,7 @@ public class SecurityConfig implements WebMvcConfigurer {
                 .csrf().disable()
                 .cors().and()
                 .authorizeRequests()
-                .antMatchers("/").authenticated()
+                .antMatchers("/main").authenticated()
                 .antMatchers("/admin").hasRole("ADMIN")
                 .anyRequest().permitAll()
                 .and()

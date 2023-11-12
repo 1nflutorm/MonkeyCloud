@@ -1,9 +1,13 @@
 package com.monkeyteam.monkeycloud.controllers;
 
 import com.monkeyteam.monkeycloud.dtos.JwtRequest;
+import com.monkeyteam.monkeycloud.dtos.RefreshRequest;
 import com.monkeyteam.monkeycloud.dtos.RegistrationUserDto;
+import com.monkeyteam.monkeycloud.entities.RefreshToken;
 import com.monkeyteam.monkeycloud.exeptions.AppError;
+import com.monkeyteam.monkeycloud.exeptions.RefreshTokenExeption;
 import com.monkeyteam.monkeycloud.services.AuthService;
+import com.monkeyteam.monkeycloud.services.RefreshTokenService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
@@ -14,6 +18,7 @@ import org.springframework.web.bind.annotation.*;
 @RequiredArgsConstructor
 public class AuthorisationController {
     private final AuthService authService;
+    private final RefreshTokenService refreshTokenService;
 
     @PostMapping("/sign-up")
     public ResponseEntity<?> registration(@RequestBody RegistrationUserDto registrationUserDto) {
@@ -24,18 +29,30 @@ public class AuthorisationController {
         JwtRequest jwtRequest = new JwtRequest();
         jwtRequest.setUsername(registrationUserDto.getUsername());
         jwtRequest.setPassword(registrationUserDto.getPassword());
-        ResponseEntity<?> token = authService.createAuthToken(jwtRequest);
+        ResponseEntity<?> token = authService.authorize(jwtRequest);
         return token;
     }
 
     @PostMapping("/sign-in")
     public ResponseEntity<?> login(@RequestBody JwtRequest authRequest) {
-        return authService.createAuthToken(authRequest);
+        return authService.authorize(authRequest);
     }
 
     @PostMapping("/sign-out")
     public ResponseEntity<?> signout(@RequestHeader HttpHeaders headers) {
         String authHeader = headers.getFirst(HttpHeaders.AUTHORIZATION);
         return authService.signout(authHeader);
+    }
+
+    @PostMapping("/refresh")
+    public ResponseEntity<?> refresh(@RequestBody RefreshRequest request) {
+        RefreshToken refreshToken = null;
+        try{
+            refreshToken = refreshTokenService.getRefreshToken(request);
+            refreshTokenService.verifyToken(refreshToken);
+        } catch (RefreshTokenExeption e){
+            return new ResponseEntity<>(new AppError(HttpStatus.REQUEST_TIMEOUT.value(), e.getMessage()), HttpStatus.REQUEST_TIMEOUT);
+        }
+        return authService.createTokens(refreshTokenService.getUsername(refreshToken.getUser_id()));
     }
 }
