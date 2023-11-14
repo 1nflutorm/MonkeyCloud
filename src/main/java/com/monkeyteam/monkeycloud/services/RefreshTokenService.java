@@ -16,7 +16,7 @@ import java.util.UUID;
 
 @Service
 public class RefreshTokenService{
-    private long REFRESH_TOKEN_LIFETIME = 864000000;//10 дней
+    private long REFRESH_TOKEN_LIFETIME = 864;//000000;//10 дней
     private UserRepository userRepository;
     private RefreshTokenRepository refreshTokenRepository;
     @Autowired
@@ -62,10 +62,10 @@ public class RefreshTokenService{
         return user.getUsername();
     }
 
-    public RefreshToken getRefreshToken (RefreshRequest request) throws RefreshTokenExeption {
-        Optional<RefreshToken> refreshToken = refreshTokenRepository.findByToken(request.getToken());
+    public RefreshToken getRefreshToken (String request) throws RefreshTokenExeption {
+        Optional<RefreshToken> refreshToken = refreshTokenRepository.findByToken(request);
         if (!refreshToken.isPresent()){
-            throw new RefreshTokenExeption(request.getToken(), "Токен отсутствует в базе данных");
+            throw new RefreshTokenExeption(request, "Токен отсутствует в базе данных");
         }
         return refreshToken.get();
     }
