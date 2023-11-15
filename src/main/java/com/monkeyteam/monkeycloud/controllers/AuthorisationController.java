@@ -52,7 +52,7 @@ public class AuthorisationController {
             refreshToken = refreshTokenService.getRefreshToken(authHeader);
             refreshTokenService.verifyToken(refreshToken);
         } catch (RefreshTokenExeption e) {
-            refreshTokenService.deleteByUserToken(authHeader);
+            refreshTokenService.setSessionInactive(authHeader);
             return new ResponseEntity<>(new AppError(HttpStatus.REQUEST_TIMEOUT.value(), e.getMessage()), HttpStatus.REQUEST_TIMEOUT);
         }
         return authService.createTokens(refreshTokenService.getUsername(refreshToken.getUser_id()));
