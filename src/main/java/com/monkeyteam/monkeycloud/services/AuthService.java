@@ -41,9 +41,7 @@ public class AuthService {
         UserDetails userDetails = userService.loadUserByUsername(username);
         String accessToken = jwtTokenUtils.generateToken(userDetails);
         userRepository.setSessionActive(username);
-
         RefreshToken refreshToken = refreshTokenService.generateRefreshToken(username);
-
         return ResponseEntity.ok(new JwtResponse(username, accessToken, refreshToken.getToken()));
     }
 
