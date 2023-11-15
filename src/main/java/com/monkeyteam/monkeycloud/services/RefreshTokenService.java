@@ -62,6 +62,10 @@ public class RefreshTokenService{
         return user.getUsername();
     }
 
+    public void deleteByUserToken(String token){
+        refreshTokenRepository.deleteByUserToken(token);
+    }
+
     public RefreshToken getRefreshToken (String request) throws RefreshTokenExeption {
         Optional<RefreshToken> refreshToken = refreshTokenRepository.findByToken(request);
         if (!refreshToken.isPresent()){
