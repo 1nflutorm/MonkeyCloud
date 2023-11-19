@@ -1,0 +1,17 @@
+version: '3'
+
+services:
+  postgres:
+    image: 'postgres:15'
+    container_name: 'database'
+    environment:
+      - 'POSTGRES_USER=postgres'
+      - 'POSTGRES_PASSWORD=admin'
+      - 'POSTGRES_DB=MonkeyCloud'
+    volumes:
+      - ./src/main/resources/db-init:/docker-entrypoint-initdb.d
+  app:
+    build: ./
+    container_name: 'backend'
+    ports:
+      - 8080:8080
