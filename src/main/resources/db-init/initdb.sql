@@ -1,4 +1,3 @@
-CREATE SCHEMA IF NOT EXIST tasklist;
 --<Таблица пользователи>
 create table users
 (
@@ -7,15 +6,11 @@ create table users
     user_password varchar(255) not null,
     user_first_name varchar(255),
     user_second_name varchar(255),
-    user_father_name varchar(255)
+    user_father_name varchar(255),
+    session boolean NOT NULL DEFAULT false
 );
 create index users_username_index on users(username);
 --</Таблица пользователи>
-
---<Добавление колонки "сессия">
-ALTER TABLE users
-    ADD COLUMN session boolean NOT NULL DEFAULT false;
---</Добавление колонки "сессия">
 
 --<Таблица роли>
 create table roles
@@ -213,5 +208,3 @@ values
         2,
         2
     );
-
--
