@@ -17,4 +17,9 @@ public interface RefreshTokenRepository extends CrudRepository<RefreshToken, Str
     @Transactional
     @Query(value = "delete from refresh_tokens where user_id = ?", nativeQuery = true)
     public void deleteByUserId(long id);
+
+    @Modifying
+    @Transactional
+    @Query(value = "delete from refresh_tokens where user_token = ?", nativeQuery = true)
+    public void deleteByUserToken(String token);
 }

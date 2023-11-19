@@ -37,12 +37,10 @@ public class JwtRequestFilter extends OncePerRequestFilter {
             try {
                 username = jwtTokenUtils.getUsername(jwt);
             } catch (ExpiredJwtException e) {
-                Claims claims = e.getClaims();
-                System.out.println("имя пользователя протухшего токена " + claims.getSubject());
-                response.sendError(408);//протух токен
+                response.sendError(HttpStatus.UNAUTHORIZED.value(), "accessToken dead");//протух токен
                 return;
             } catch (SignatureException e) {
-                response.sendError(403);//неправильная подпись
+                response.sendError(HttpStatus.FORBIDDEN.value(), "incorrect secret");//неправильная подпись
                 return;
             }
         }

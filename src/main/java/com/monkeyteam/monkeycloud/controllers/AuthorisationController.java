@@ -45,12 +45,14 @@ public class AuthorisationController {
     }
 
     @PostMapping("/refresh")
-    public ResponseEntity<?> refresh(@RequestBody RefreshRequest request) {
+    public ResponseEntity<?> refresh(@RequestHeader HttpHeaders headers) {
         RefreshToken refreshToken = null;
+        String authHeader = headers.getFirst(HttpHeaders.AUTHORIZATION);
         try{
-            refreshToken = refreshTokenService.getRefreshToken(request);
+            refreshToken = refreshTokenService.getRefreshToken(authHeader);
             refreshTokenService.verifyToken(refreshToken);
-        } catch (RefreshTokenExeption e){
+        } catch (RefreshTokenExeption e) {
+            refreshTokenService.setSessionInactive(authHeader);
             return new ResponseEntity<>(new AppError(HttpStatus.REQUEST_TIMEOUT.value(), e.getMessage()), HttpStatus.REQUEST_TIMEOUT);
         }
         return authService.createTokens(refreshTokenService.getUsername(refreshToken.getUser_id()));
