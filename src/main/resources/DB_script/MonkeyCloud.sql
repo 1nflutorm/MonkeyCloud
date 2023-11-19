@@ -160,6 +160,17 @@ create table favorite_files
 create index favorite_files_user_id_index on favorite_files(user_id);	
 --</Таблица Избранные файлы>
 
+--</Таблица Рефреш тоекн>
+create table refresh_tokens (
+                                user_id int not null unique,
+                                user_token varchar(255) primary key,
+                                expire_date varchar(100) not null,
+                                constraint fk_user foreign key(user_id)
+                                    references users(user_id)
+                                    on delete cascade
+                                    on update cascade);
+--</Таблица Рефреш тоекн>
+
 --<тригер для проверки повторяющегося логина>
 create or replace trigger user_login_trigger
 	before insert on users
