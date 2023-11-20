@@ -28,7 +28,7 @@ services:
       - minio
     container_name: 'backend'
     ports:
-      - 8080:8080
+      - '8080:8080'
 
   minio:
     image: minio/minio:latest

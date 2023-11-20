@@ -21,11 +21,16 @@ import java.security.NoSuchAlgorithmException;
 @Service
 @RequiredArgsConstructor
 public class MinioController {
-    private final MinioClient minioClient;
+    private MinioClient minioClient;
+
+    @Autowired
+    public void setMinioClient(MinioClient minioClient) {
+        this.minioClient = minioClient;
+    }
+
     @PostMapping("/upload")
-    public ResponseEntity<?> uploadMinio() throws ServerException, InsufficientDataException, ErrorResponseException, IOException, NoSuchAlgorithmException, InvalidKeyException, InvalidResponseException, XmlParserException, InternalException
-    {
-        minioClient.makeBucket(MakeBucketArgs.builder().bucket("aue").build());
+    public ResponseEntity<?> uploadMinio() throws ServerException, InsufficientDataException, ErrorResponseException, IOException, NoSuchAlgorithmException, InvalidKeyException, InvalidResponseException, XmlParserException, InternalException {
+        minioClient.makeBucket(MakeBucketArgs.builder().bucket("1nflutorm").build());
         return new ResponseEntity<>(HttpStatus.OK.value(), HttpStatus.OK);
     }
 }

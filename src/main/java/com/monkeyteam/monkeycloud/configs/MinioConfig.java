@@ -9,11 +9,12 @@ import org.springframework.stereotype.Component;
 @Configuration
 @RequiredArgsConstructor
 public class MinioConfig {
-
+    //cd c:\minio
+    //.\minio.exe server C:\minio --console-address :9090
     @Bean
     public MinioClient configuredMinioClient() {
         MinioClient minioClient = MinioClient.builder()
-                .endpoint("http://192.168.0.3:51148/")
+                .endpoint("http://localhost:9000")
                 .credentials("admin","password")
                 .build();
         return minioClient;
