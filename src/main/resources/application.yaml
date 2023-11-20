@@ -19,5 +19,9 @@ spring:
         dialect: org.hibernate.dialect.PostgreSQLDialect
   main:
     allow-circular-references: true
+  minio:
+    url: http://localhost:9000
+    accessKey: admin
+    secretKey: password
 
 
