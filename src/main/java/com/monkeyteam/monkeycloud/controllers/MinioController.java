@@ -30,7 +30,7 @@ public class MinioController {
 
     @PostMapping("/upload")
     public ResponseEntity<?> uploadMinio() throws ServerException, InsufficientDataException, ErrorResponseException, IOException, NoSuchAlgorithmException, InvalidKeyException, InvalidResponseException, XmlParserException, InternalException {
-        minioClient.makeBucket(MakeBucketArgs.builder().bucket("1nflutorm").build());
+        //minioClient.makeBucket(MakeBucketArgs.builder().bucket("1nflutrom").build());
         return new ResponseEntity<>(HttpStatus.OK.value(), HttpStatus.OK);
     }
 }
