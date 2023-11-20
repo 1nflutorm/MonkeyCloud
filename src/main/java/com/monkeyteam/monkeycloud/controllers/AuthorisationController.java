@@ -3,6 +3,7 @@ package com.monkeyteam.monkeycloud.controllers;
 import com.monkeyteam.monkeycloud.dtos.JwtRequest;
 import com.monkeyteam.monkeycloud.dtos.RefreshRequest;
 import com.monkeyteam.monkeycloud.dtos.RegistrationUserDto;
+import com.monkeyteam.monkeycloud.dtos.UserDto;
 import com.monkeyteam.monkeycloud.entities.RefreshToken;
 import com.monkeyteam.monkeycloud.exeptions.AppError;
 import com.monkeyteam.monkeycloud.exeptions.RefreshTokenExeption;
@@ -26,10 +27,7 @@ public class AuthorisationController {
         if (responseEntity.getStatusCode() == HttpStatus.BAD_REQUEST) {
             return new ResponseEntity<>(new AppError(HttpStatus.BAD_REQUEST.value(), "Пользователь с указанным именем уже существует"), HttpStatus.BAD_REQUEST);
         }
-        JwtRequest jwtRequest = new JwtRequest();
-        jwtRequest.setUsername(registrationUserDto.getUsername());
-        jwtRequest.setPassword(registrationUserDto.getPassword());
-        ResponseEntity<?> token = authService.authorize(jwtRequest);
+        ResponseEntity<?> token = authService.authorize(new JwtRequest(registrationUserDto.getUsername(), registrationUserDto.getPassword()));
         return token;
     }
 

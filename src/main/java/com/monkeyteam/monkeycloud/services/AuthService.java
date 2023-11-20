@@ -1,12 +1,15 @@
 package com.monkeyteam.monkeycloud.services;
 
 import com.monkeyteam.monkeycloud.dtos.*;
+import com.monkeyteam.monkeycloud.entities.Folder;
 import com.monkeyteam.monkeycloud.entities.RefreshToken;
 import com.monkeyteam.monkeycloud.entities.User;
 import com.monkeyteam.monkeycloud.exeptions.AppError;
+import com.monkeyteam.monkeycloud.repositories.FolderRepository;
 import com.monkeyteam.monkeycloud.repositories.RefreshTokenRepository;
 import com.monkeyteam.monkeycloud.repositories.UserRepository;
 import com.monkeyteam.monkeycloud.utils.JwtTokenUtils;
+import io.minio.errors.*;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -17,6 +20,9 @@ import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Service;
 import org.springframework.web.bind.annotation.RequestBody;
 
+import java.io.IOException;
+import java.security.InvalidKeyException;
+import java.security.NoSuchAlgorithmException;
 import java.util.Optional;
 
 
@@ -27,7 +33,9 @@ public class AuthService {
     private final JwtTokenUtils jwtTokenUtils;
     private final AuthenticationManager authenticationManager;
     private final UserRepository userRepository;
+    private final FolderRepository folderRepository;
     private final RefreshTokenService refreshTokenService;
+    private final MinioService minioService;
 
     public ResponseEntity<?> authorize(@RequestBody JwtRequest authRequest) {
         try {
@@ -50,6 +58,19 @@ public class AuthService {
             return new ResponseEntity<>(new AppError(HttpStatus.BAD_REQUEST.value(), "Пользователь с указанным именем уже существует"), HttpStatus.BAD_REQUEST);
         }
         User user = userService.createNewUser(registrationUserDto);
+        try {
+            minioService.createBucket(user.getUsername());
+        } catch (ServerException | InsufficientDataException | ErrorResponseException |
+                 IOException | NoSuchAlgorithmException | InvalidKeyException |
+                 InvalidResponseException | XmlParserException | InternalException e) {
+            return new ResponseEntity<>(new AppError(HttpStatus.BAD_REQUEST.value(), "Ошибка создания бакета"), HttpStatus.BAD_REQUEST);
+        }
+        Folder folder = new Folder();
+        folder.setUserId(user.getUser_id());
+        folder.setFolderPath("Minio");
+        folder.setFolderName(user.getUsername());
+        folder.setFolderAccess(1);
+        folderRepository.save(folder);
         return ResponseEntity.ok(new UserDto(user.getUser_id(), user.getUsername()));
     }
 
