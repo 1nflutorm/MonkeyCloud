@@ -16,7 +16,7 @@ import java.util.UUID;
 
 @Service
 public class RefreshTokenService {
-    private long REFRESH_TOKEN_LIFETIME = 864;//000000;//10 дней
+    private long REFRESH_TOKEN_LIFETIME = 864000000;//10 дней
     private UserRepository userRepository;
     private RefreshTokenRepository refreshTokenRepository;
 
