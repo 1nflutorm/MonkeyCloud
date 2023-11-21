@@ -14,14 +14,18 @@ import java.io.InputStream;
 
 @Service
 public class FileService {
-    MinioClient minioClient;
+    private MinioClient minioClient;
+    @Autowired
+    public void setMinioClient (MinioClient minioClient){
+        this.minioClient = minioClient;
+    }
     public ResponseEntity<?> uploadFile(FileUploadRequest fileUploadRequest) {
         InputStream inputStream = null;
         try{
             inputStream = fileUploadRequest.getMultipartFile().getInputStream();
             minioClient.putObject(PutObjectArgs.builder()
                     .bucket(fileUploadRequest.getUsername())
-                    .object(fileUploadRequest.getUsername()+fileUploadRequest.getMultipartFile().getOriginalFilename())
+                    .object(fileUploadRequest.getFullPath() + fileUploadRequest.getMultipartFile().getOriginalFilename())
                     .stream(inputStream, fileUploadRequest.getMultipartFile().getSize(), -1)
                     .build());
         } catch (Exception e) {
