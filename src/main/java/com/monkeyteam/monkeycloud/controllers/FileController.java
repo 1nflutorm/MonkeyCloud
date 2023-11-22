@@ -15,22 +15,22 @@ import org.springframework.web.bind.annotation.*;
 public class FileController {
     private final FileService fileService;
 
-    @PostMapping("/upload")
+    @PostMapping("/uploadFile")
     public ResponseEntity<?> uploadFile(@ModelAttribute FileUploadRequest file) {
         return fileService.uploadFile(file);
     }
 
-    @GetMapping("/download")
+    @GetMapping("/downloadFile")
     public ResponseEntity<?> downloadFile(@ModelAttribute FileDownloadRequest file) {
         return fileService.downloadFile(file);
     }
 
-    @DeleteMapping("/delete")
+    @DeleteMapping("/deleteFile")
     public ResponseEntity<?> deleteFile(@ModelAttribute FileDownloadRequest file) {
         return fileService.deleteFile(file);
     }
 
-    @PutMapping("/rename")
+    @PutMapping("/renameFile")
     public ResponseEntity<?> renameFile(@ModelAttribute FileRenameRequest file) {
         return fileService.renameFile(file);
     }
