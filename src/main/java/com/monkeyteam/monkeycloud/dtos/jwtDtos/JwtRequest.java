@@ -1,4 +1,4 @@
-package com.monkeyteam.monkeycloud.dtos;
+package com.monkeyteam.monkeycloud.dtos.jwtDtos;
 
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -7,8 +7,7 @@ import lombok.NoArgsConstructor;
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
-public class JwtResponse {
+public class JwtRequest {
     private String username;
-    private String accessToken;
-    private String refreshToken;
+    private String password;
 }

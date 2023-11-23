@@ -1,12 +1,14 @@
 package com.monkeyteam.monkeycloud.services;
 
 import com.monkeyteam.monkeycloud.dtos.*;
+import com.monkeyteam.monkeycloud.dtos.authDtos.RegistrationUserDto;
+import com.monkeyteam.monkeycloud.dtos.jwtDtos.JwtRequest;
+import com.monkeyteam.monkeycloud.dtos.jwtDtos.JwtResponse;
 import com.monkeyteam.monkeycloud.entities.Folder;
 import com.monkeyteam.monkeycloud.entities.RefreshToken;
 import com.monkeyteam.monkeycloud.entities.User;
 import com.monkeyteam.monkeycloud.exeptions.AppError;
 import com.monkeyteam.monkeycloud.repositories.FolderRepository;
-import com.monkeyteam.monkeycloud.repositories.RefreshTokenRepository;
 import com.monkeyteam.monkeycloud.repositories.UserRepository;
 import com.monkeyteam.monkeycloud.utils.JwtTokenUtils;
 import io.minio.errors.*;

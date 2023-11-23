@@ -1,12 +1,12 @@
 package com.monkeyteam.monkeycloud.controllers;
 
-import com.monkeyteam.monkeycloud.dtos.FileDownloadRequest;
-import com.monkeyteam.monkeycloud.dtos.FileRenameRequest;
-import com.monkeyteam.monkeycloud.dtos.FileUploadRequest;
+import com.monkeyteam.monkeycloud.dtos.fileDtos.FileDeleteRequest;
+import com.monkeyteam.monkeycloud.dtos.fileDtos.FileDownloadRequest;
+import com.monkeyteam.monkeycloud.dtos.fileDtos.FileRenameRequest;
+import com.monkeyteam.monkeycloud.dtos.fileDtos.FileUploadRequest;
 import com.monkeyteam.monkeycloud.services.FileService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.core.parameters.P;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
 
@@ -26,7 +26,7 @@ public class FileController {
     }
 
     @DeleteMapping("/deleteFile")
-    public ResponseEntity<?> deleteFile(@ModelAttribute FileDownloadRequest file) {
+    public ResponseEntity<?> deleteFile(@ModelAttribute FileDeleteRequest file) {
         return fileService.deleteFile(file);
     }
 
@@ -34,4 +34,6 @@ public class FileController {
     public ResponseEntity<?> renameFile(@ModelAttribute FileRenameRequest file) {
         return fileService.renameFile(file);
     }
+
+
 }

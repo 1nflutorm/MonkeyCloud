@@ -1,6 +1,5 @@
 package com.monkeyteam.monkeycloud.services;
 
-import com.monkeyteam.monkeycloud.dtos.RefreshRequest;
 import com.monkeyteam.monkeycloud.entities.RefreshToken;
 import com.monkeyteam.monkeycloud.entities.User;
 import com.monkeyteam.monkeycloud.exeptions.RefreshTokenExeption;
@@ -8,7 +7,6 @@ import com.monkeyteam.monkeycloud.repositories.RefreshTokenRepository;
 import com.monkeyteam.monkeycloud.repositories.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-import org.springframework.web.bind.annotation.RequestBody;
 
 import java.time.Instant;
 import java.util.Optional;

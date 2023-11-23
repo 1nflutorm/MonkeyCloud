@@ -1,8 +1,9 @@
 package com.monkeyteam.monkeycloud.services;
 
-import com.monkeyteam.monkeycloud.dtos.FileDownloadRequest;
-import com.monkeyteam.monkeycloud.dtos.FileRenameRequest;
-import com.monkeyteam.monkeycloud.dtos.FileUploadRequest;
+import com.monkeyteam.monkeycloud.dtos.fileDtos.FileDeleteRequest;
+import com.monkeyteam.monkeycloud.dtos.fileDtos.FileDownloadRequest;
+import com.monkeyteam.monkeycloud.dtos.fileDtos.FileRenameRequest;
+import com.monkeyteam.monkeycloud.dtos.fileDtos.FileUploadRequest;
 import com.monkeyteam.monkeycloud.dtos.MinioDto;
 import com.monkeyteam.monkeycloud.exeptions.AppError;
 import io.minio.*;
@@ -25,13 +26,6 @@ public class FileService {
     public void setMinioClient(MinioClient minioClient) {
         this.minioClient = minioClient;
     }
-
-
-
-
-
-
-
 
     private List<MinioDto> getUserFiles(String username, String folder, boolean isRecursive) throws Exception {
         Iterable<Result<Item>> results = minioClient.listObjects(ListObjectsArgs.builder()
@@ -62,13 +56,6 @@ public class FileService {
     public List<MinioDto> getAllUserFiles(String username, String folder) throws Exception {
         return getUserFiles(username, folder, true);
     }
-
-
-
-
-
-
-
 
     public ResponseEntity<?> uploadFile(FileUploadRequest fileUploadRequest) {
         InputStream inputStream = null;
@@ -109,7 +96,7 @@ public class FileService {
         return ResponseEntity.ok("Файл скачен успешно");
     }
 
-    public ResponseEntity<?> deleteFile(FileDownloadRequest fileDeleteRequest) {
+    public ResponseEntity<?> deleteFile(FileDeleteRequest fileDeleteRequest) {
         try {
             minioClient.removeObject(RemoveObjectArgs
                     .builder()
@@ -134,7 +121,7 @@ public class FileService {
                             .object(fileRenameRequest.getFullPath() + fileRenameRequest.getOldName())
                             .build())
                     .build());
-            deleteFile(new FileDownloadRequest(fileRenameRequest.getUsername(), fileRenameRequest.getFullPath() + "/" + fileRenameRequest.getOldName()));
+            deleteFile(new FileDeleteRequest(fileRenameRequest.getUsername(), fileRenameRequest.getFullPath() + "/" + fileRenameRequest.getOldName()));
         } catch (Exception e) {
             return new ResponseEntity<>(new AppError(HttpStatus.BAD_REQUEST.value(), "Ошибка при переименовании файла"), HttpStatus.BAD_REQUEST);
         }
