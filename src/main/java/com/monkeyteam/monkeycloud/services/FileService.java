@@ -1,9 +1,6 @@
 package com.monkeyteam.monkeycloud.services;
 
-import com.monkeyteam.monkeycloud.dtos.fileDtos.FileDeleteRequest;
-import com.monkeyteam.monkeycloud.dtos.fileDtos.FileDownloadRequest;
-import com.monkeyteam.monkeycloud.dtos.fileDtos.FileRenameRequest;
-import com.monkeyteam.monkeycloud.dtos.fileDtos.FileUploadRequest;
+import com.monkeyteam.monkeycloud.dtos.fileDtos.*;
 import com.monkeyteam.monkeycloud.dtos.MinioDto;
 import com.monkeyteam.monkeycloud.exeptions.AppError;
 import io.minio.*;
@@ -30,7 +27,7 @@ public class FileService {
     private List<MinioDto> getUserFiles(String username, String folder, boolean isRecursive) throws Exception {
         Iterable<Result<Item>> results = minioClient.listObjects(ListObjectsArgs.builder()
                 .bucket(username)
-                .prefix(username + folder)
+                .prefix(folder)
                 .recursive(isRecursive)
                 .build());
         List<MinioDto> files = new ArrayList<>();
@@ -38,11 +35,12 @@ public class FileService {
         results.forEach(result -> {
             try {
                 Item item = result.get();
+                String[] newNames = getCorrectNamesForItem(item, folder);
                 MinioDto object = new MinioDto(
                         username,
                         item.isDir(),
-                        username + folder,
-                        folder);
+                        newNames[1].equals("") ? username : username + "/" + newNames[1],
+                        newNames[0]);
                 files.add(object);
             } catch (Exception e) {
                 e.printStackTrace();
@@ -50,8 +48,14 @@ public class FileService {
         });
         return files;
     }
-    public List<MinioDto> getUserFiles(String username, String folder) throws Exception {
-        return getUserFiles(username, folder, false);
+    public List<MinioDto> getUserFiles(GetFilesRequest getFilesRequest) {
+        List<MinioDto> list = null;
+        try {
+            list = getUserFiles(getFilesRequest.getUsername(), getFilesRequest.getFolder(), false);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return list;
     }
     public List<MinioDto> getAllUserFiles(String username, String folder) throws Exception {
         return getUserFiles(username, folder, true);
@@ -62,7 +66,9 @@ public class FileService {
         try {
             inputStream = fileUploadRequest.getMultipartFile().getInputStream();
             minioClient.putObject(PutObjectArgs.builder()
-                    .bucket(fileUploadRequest.getUsername())
+                    .bucket(fileUploadRequest.getUsername())//путь передается без названия бакета и названия файла
+                                                            //например folder/secFolder/
+                                                            //при этом имя бакета 1nflutrom, а название передаваемого файла png.png
                     .object(fileUploadRequest.getFullPath() + fileUploadRequest.getMultipartFile().getOriginalFilename())
                     .stream(inputStream, fileUploadRequest.getMultipartFile().getSize(), -1)
                     .build());
@@ -101,7 +107,7 @@ public class FileService {
             minioClient.removeObject(RemoveObjectArgs
                     .builder()
                     .bucket(fileDeleteRequest.getUsername())
-                    .object(fileDeleteRequest.getFullPath())
+                    .object(fileDeleteRequest.getFullPath())//передается только путь, без названия бакета и без первого "/" пример: folder/secFolder/360fx360f.png
                     .build());
         } catch (Exception e) {
             return new ResponseEntity<>(new AppError(HttpStatus.BAD_REQUEST.value(), "Ошибка при удалении файла"), HttpStatus.BAD_REQUEST);
@@ -118,7 +124,9 @@ public class FileService {
                     .source(CopySource
                             .builder()
                             .bucket(fileRenameRequest.getUsername())
-                            .object(fileRenameRequest.getFullPath() + fileRenameRequest.getOldName())
+                            .object(fileRenameRequest.getFullPath() + fileRenameRequest.getOldName()) //путь передается без названия бакета и названия файла
+                                                                                                            //например folder/secFolder/
+                                                                                                            //при этом имя бакета 1nflutrom, а название файла png.png
                             .build())
                     .build());
             deleteFile(new FileDeleteRequest(fileRenameRequest.getUsername(), fileRenameRequest.getFullPath() + "/" + fileRenameRequest.getOldName()));
@@ -126,5 +134,21 @@ public class FileService {
             return new ResponseEntity<>(new AppError(HttpStatus.BAD_REQUEST.value(), "Ошибка при переименовании файла"), HttpStatus.BAD_REQUEST);
         }
         return ResponseEntity.ok("Файл переименован успешно");
+    }
+
+    private String[] getCorrectNamesForItem(Item item, String folder){
+        String objectName = "";
+        int lastSlash = item.objectName().lastIndexOf('/');
+        if(!item.isDir()) {//если не дитректория, то удаляем последний слэш
+            objectName = item.objectName().substring(lastSlash + 1);
+        } else {// если директория, то удаляем предпоследний и послдежний слэш
+            objectName = item.objectName().substring(0, lastSlash);
+            objectName = objectName.substring(objectName.lastIndexOf('/') + 1);
+        }
+        lastSlash = folder.lastIndexOf('/');
+        String folderName = "";
+        if(lastSlash == folder.length() - 1 && lastSlash != -1)
+            folderName = folder.substring(0, lastSlash);
+        return new String[]{objectName, folderName};
     }
 }

@@ -1,11 +1,11 @@
 package com.monkeyteam.monkeycloud.controllers;
 
-import com.monkeyteam.monkeycloud.dtos.fileDtos.FileDeleteRequest;
-import com.monkeyteam.monkeycloud.dtos.fileDtos.FileDownloadRequest;
-import com.monkeyteam.monkeycloud.dtos.fileDtos.FileRenameRequest;
-import com.monkeyteam.monkeycloud.dtos.fileDtos.FileUploadRequest;
+import com.monkeyteam.monkeycloud.dtos.ListOfData;
+import com.monkeyteam.monkeycloud.dtos.fileDtos.*;
+import com.monkeyteam.monkeycloud.exeptions.AppError;
 import com.monkeyteam.monkeycloud.services.FileService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
@@ -35,5 +35,9 @@ public class FileController {
         return fileService.renameFile(file);
     }
 
+    @GetMapping("/getFiles")
+    public ResponseEntity<?> getFiles(@ModelAttribute GetFilesRequest filesRequest) {
+        return new ResponseEntity<>(new ListOfData(fileService.getUserFiles(filesRequest)), HttpStatus.OK);
+    }
 
 }
