@@ -1,8 +1,8 @@
 package com.monkeyteam.monkeycloud.services;
 
-import com.monkeyteam.monkeycloud.dtos.FolderDeleteRequest;
-import com.monkeyteam.monkeycloud.dtos.FolderRenameRequest;
-import com.monkeyteam.monkeycloud.dtos.FolderUploadRequest;
+import com.monkeyteam.monkeycloud.dtos.folderDtos.FolderDeleteRequest;
+import com.monkeyteam.monkeycloud.dtos.folderDtos.FolderRenameRequest;
+import com.monkeyteam.monkeycloud.dtos.folderDtos.FolderUploadRequest;
 import com.monkeyteam.monkeycloud.dtos.MinioDto;
 import com.monkeyteam.monkeycloud.exeptions.AppError;
 import io.minio.*;

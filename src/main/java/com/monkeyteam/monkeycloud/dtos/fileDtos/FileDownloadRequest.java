@@ -1,4 +1,4 @@
-package com.monkeyteam.monkeycloud.dtos;
+package com.monkeyteam.monkeycloud.dtos.fileDtos;
 
 import lombok.AllArgsConstructor;
 import lombok.Data;

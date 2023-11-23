@@ -1,10 +1,11 @@
-package com.monkeyteam.monkeycloud.dtos;
+package com.monkeyteam.monkeycloud.dtos.fileDtos;
 
 import lombok.Data;
 import org.springframework.web.multipart.MultipartFile;
 @Data
-public class FileUploadRequest {
+public class FileRenameRequest {
     private String username;
     private String fullPath;
-    private MultipartFile multipartFile;
+    private String oldName;
+    private String newName;
 }
