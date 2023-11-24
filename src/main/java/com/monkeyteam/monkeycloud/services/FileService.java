@@ -2,10 +2,14 @@ package com.monkeyteam.monkeycloud.services;
 
 import com.monkeyteam.monkeycloud.dtos.fileDtos.*;
 import com.monkeyteam.monkeycloud.dtos.MinioDto;
+import com.monkeyteam.monkeycloud.entities.FavoriteFile;
+import com.monkeyteam.monkeycloud.entities.Folder;
 import com.monkeyteam.monkeycloud.exeptions.AppError;
-import com.monkeyteam.monkeycloud.utils.FileAndFolderUtil;
+import com.monkeyteam.monkeycloud.repositories.FavoriteFileReposiory;
+import com.monkeyteam.monkeycloud.repositories.FolderRepository;
 import io.minio.*;
 import io.minio.messages.Item;
+import org.apache.tomcat.jni.File;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -17,10 +21,13 @@ import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.List;
 
+import static java.util.Collections.replaceAll;
+
 @Service
 public class FileService {
     private MinioClient minioClient;
-    private FileAndFolderUtil fileAndFolderUtil;
+    private FavoriteFileReposiory favoriteFileReposiory;
+    private FolderRepository folderRepository;
 
     @Autowired
     public void setMinioClient(MinioClient minioClient) {
@@ -28,8 +35,13 @@ public class FileService {
     }
 
     @Autowired
-    public void setFileAndFolderUtil(FileAndFolderUtil fileAndFolderUtil) {
-        this.fileAndFolderUtil = fileAndFolderUtil;
+    public void setFavoriteFileReposiory(FavoriteFileReposiory favoriteFileReposiory) {
+        this.favoriteFileReposiory = favoriteFileReposiory;
+    }
+
+    @Autowired
+    public void setFolderRepository(FolderRepository folderRepository) {
+        this.folderRepository = folderRepository;
     }
 
     private List<MinioDto> getUserFiles(String username, String folder, boolean isRecursive) throws Exception {
@@ -43,7 +55,7 @@ public class FileService {
         results.forEach(result -> {
             try {
                 Item item = result.get();
-                String[] newNames = fileAndFolderUtil.getCorrectNamesForItem(item, folder);
+                String[] newNames = getCorrectNamesForItem(item, folder);
                 MinioDto object = new MinioDto(
                         username,
                         item.isDir(),
@@ -147,12 +159,33 @@ public class FileService {
         return ResponseEntity.ok("Файл переименован успешно");
     }
 
+    private String[] getCorrectNamesForItem(Item item, String folder) {
+        String objectName = "";
+        int lastSlash = item.objectName().lastIndexOf('/');
+        if (!item.isDir()) {//если не дитректория, то удаляем последний слэш
+            objectName = item.objectName().substring(lastSlash + 1);
+        } else {// если директория, то удаляем предпоследний и послдежний слэш
+            objectName = item.objectName().substring(0, lastSlash);
+            objectName = objectName.substring(objectName.lastIndexOf('/') + 1);
+        }
+        lastSlash = folder.lastIndexOf('/');
+        String folderName = "";
+        if (lastSlash == folder.length() - 1 && lastSlash != -1)
+            folderName = folder.substring(0, lastSlash);
+        return new String[]{objectName, folderName};
+    }
 
+    public FavoriteFile addToFavoriteFile(FileFavoriteRequest fileFavoriteRequest) {
+        FavoriteFile favoriteFile = new FavoriteFile();
+        String path = fileFavoriteRequest.getFullPath();
+        path = path.replaceAll(fileFavoriteRequest.getFileName(), "");
+        if (folderRepository.getFolder(path).isPresent()) {
+            Folder folder = folderRepository.getFolder(path).get();
+            favoriteFile.setFilePath(path);
+            favoriteFile.setUserId(folder.getUserId());
+            favoriteFile.setFolderId(folder.getFolderId());
+            return favoriteFileReposiory.save(favoriteFile);
+        }
+        return favoriteFile;
+    }
 }
-/*
-Error creating bean with name 'folderController' defined in file [C:\Users\1nflu\source\repos\MonkeyCloud\target\classes\com\monkeyteam\monkeycloud\controllers\FolderController.class]: Unsatisfied dependency expressed through constructor parameter 0;
-nested exception is org.springframework.beans.factory.UnsatisfiedDependencyException: Error creating bean with name 'folderService': Unsatisfied dependency expressed through method 'setFileAndFolderUtil' parameter 0;
- nested exception is org.springframework.beans.factory.UnsatisfiedDependencyException: Error creating bean with name 'fileAndFolderUtil': Unsatisfied dependency expressed through method 'setInheritorFoldersRepository' parameter 0;
- nested exception is org.springframework.beans.factory.BeanCreationException: Error creating bean with name 'inheritorFoldersRepository' defined in com.monkeyteam.monkeycloud.repositories.InheritorFoldersRepository defined in @EnableJpaRepositories declared on JpaRepositoriesRegistrar.EnableJpaRepositoriesConfiguration: Invocation of init method failed;
- nested exception is java.lang.IllegalArgumentException: This class [class com.monkeyteam.monkeycloud.entities.InheritorFolder] does not define an IdClass
-*/
