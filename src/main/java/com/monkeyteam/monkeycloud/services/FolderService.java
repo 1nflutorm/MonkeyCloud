@@ -5,6 +5,7 @@ import com.monkeyteam.monkeycloud.dtos.folderDtos.FolderRenameRequest;
 import com.monkeyteam.monkeycloud.dtos.folderDtos.FolderUploadRequest;
 import com.monkeyteam.monkeycloud.dtos.MinioDto;
 import com.monkeyteam.monkeycloud.exeptions.AppError;
+import com.monkeyteam.monkeycloud.utils.FileAndFolderUtil;
 import io.minio.*;
 import io.minio.messages.DeleteError;
 import io.minio.messages.DeleteObject;
@@ -24,6 +25,18 @@ import java.util.List;
 public class FolderService {
     private FileService fileService;
     private MinioClient minioClient;
+
+    private FileAndFolderUtil fileAndFolderUtil;
+
+    @Autowired
+    public void setFileAndFolderUtil(FileAndFolderUtil fileAndFolderUtil){
+        this.fileAndFolderUtil = fileAndFolderUtil;
+    }
+
+    @Autowired
+    public void setFileController(FileService fileService) {
+        this.fileService = fileService;
+    }
 
     @Autowired
     public void setMinioClient(MinioClient minioClient) {
@@ -56,12 +69,14 @@ public class FolderService {
 
     public ResponseEntity<?> uploadFolder(FolderUploadRequest folderUploadRequest) {
         try {
-            List<SnowballObject> snowballObject = convertToSnowballObjects(folderUploadRequest);
+            List<SnowballObject> snowballObjects = convertToSnowballObjects(folderUploadRequest);
             minioClient.uploadSnowballObjects(UploadSnowballObjectsArgs
                     .builder()
                     .bucket(folderUploadRequest.getUsername())
-                    .objects(snowballObject)
+                    .objects(snowballObjects)
                     .build());
+
+            fileAndFolderUtil.addDirsToDataBaseFromUploadedFolder(snowballObjects, folderUploadRequest.getUsername());///!!!НЕ ТЕСТИРОВАЛОСЬ
         } catch (Exception e) {
             return new ResponseEntity<>(new AppError(HttpStatus.BAD_REQUEST.value(), "Ошибка при загрузке папки"), HttpStatus.BAD_REQUEST);
         }
@@ -80,10 +95,10 @@ public class FolderService {
                 minioClient.copyObject(CopyObjectArgs
                         .builder()
                         .bucket(folderRenameRequest.getUsername())
-                        .object(folderRenameRequest.getFullPath().replace(folderRenameRequest.getOldName(), folderRenameRequest.getNewName()))
+                        .object(folderRenameRequest.getFullPath() + folderRenameRequest.getNewName() + "/")
                         .source(CopySource.builder()
                                 .bucket(folderRenameRequest.getUsername())
-                                .object(folderRenameRequest.getFullPath())
+                                .object(folderRenameRequest.getFullPath() + folderRenameRequest.getOldName() + "/")
                                 .build())
                         .build());
 
