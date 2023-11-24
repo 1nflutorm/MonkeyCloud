@@ -2,6 +2,8 @@ package com.monkeyteam.monkeycloud.controllers;
 
 import com.monkeyteam.monkeycloud.dtos.ListOfData;
 import com.monkeyteam.monkeycloud.dtos.fileDtos.*;
+
+import com.monkeyteam.monkeycloud.repositories.FavoriteFileReposiory;
 import com.monkeyteam.monkeycloud.exeptions.AppError;
 import com.monkeyteam.monkeycloud.services.FileService;
 import lombok.RequiredArgsConstructor;
@@ -38,6 +40,16 @@ public class FileController {
     @GetMapping("/getFiles")
     public ResponseEntity<?> getFiles(@ModelAttribute GetFilesRequest filesRequest) {
         return new ResponseEntity<>(new ListOfData(fileService.getUserFiles(filesRequest)), HttpStatus.OK);
+    }
+
+    @PostMapping("/addToFavorite")
+    public ResponseEntity<?> addToFavorite(@ModelAttribute FileFavoriteRequest fileFavoriteRequest){
+        return fileService.addToFavoriteFile(fileFavoriteRequest);
+    }
+
+    @PostMapping("/removeFromFavorite")
+    public ResponseEntity<?> removeFromFavorite(@ModelAttribute FileFavoriteRequest fileFavoriteRequest){
+        return fileService.removeFromFavorites(fileFavoriteRequest);
     }
 
 }

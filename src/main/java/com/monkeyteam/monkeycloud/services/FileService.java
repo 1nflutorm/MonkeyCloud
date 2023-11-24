@@ -4,9 +4,14 @@ import com.monkeyteam.monkeycloud.dtos.fileDtos.*;
 import com.monkeyteam.monkeycloud.dtos.MinioDto;
 import com.monkeyteam.monkeycloud.entities.FavoriteFile;
 import com.monkeyteam.monkeycloud.entities.Folder;
+import com.monkeyteam.monkeycloud.entities.User;
 import com.monkeyteam.monkeycloud.exeptions.AppError;
 import com.monkeyteam.monkeycloud.repositories.FavoriteFileReposiory;
 import com.monkeyteam.monkeycloud.repositories.FolderRepository;
+import com.monkeyteam.monkeycloud.repositories.UserRepository;
+import com.monkeyteam.monkeycloud.utils.FileAndFolderUtil;
+
+
 import io.minio.*;
 import io.minio.messages.Item;
 import org.apache.tomcat.jni.File;
@@ -20,14 +25,39 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
+
+
 
 import static java.util.Collections.replaceAll;
 
 @Service
 public class FileService {
     private MinioClient minioClient;
-    private FavoriteFileReposiory favoriteFileReposiory;
+
+    private FileAndFolderUtil fileAndFolderUtil;
     private FolderRepository folderRepository;
+    private FavoriteFileReposiory favoriteFileReposiory;
+    private UserRepository userRepository;
+
+    @Autowired
+    public void setUserRepository(UserRepository userRepository) {
+        this.userRepository = userRepository;
+    }
+
+    @Autowired
+    public void setFavoriteFileReposiory(FavoriteFileReposiory favoriteFileReposiory) {
+        this.favoriteFileReposiory = favoriteFileReposiory;
+    }
+
+    @Autowired
+    public void setFolderRepository(FolderRepository folderRepository) {
+        this.folderRepository = folderRepository;
+    }
+
+
+    
+
 
     @Autowired
     public void setMinioClient(MinioClient minioClient) {
@@ -137,7 +167,28 @@ public class FileService {
         return ResponseEntity.ok("Файл удалён успешно");
     }
 
-    @Transactional
+    public ResponseEntity<?> addToFavoriteFile(FileFavoriteRequest fileFavoriteRequest) {
+        User user = userRepository.findByUsername(fileFavoriteRequest.getUserName()).get();
+        FavoriteFile favoriteFile = new FavoriteFile();
+        String path = fileFavoriteRequest.getFullPath();
+        Optional<Folder> optional = folderRepository.findFolderByUserIdAndPath(user.getUser_id(), path);
+        if (optional.isPresent()) {
+            Folder folder = optional.get();
+            favoriteFile.setFilePath(path);
+            favoriteFile.setUserId(folder.getUserId());
+            favoriteFile.setFolderId(folder.getFolderId());
+            favoriteFileReposiory.save(favoriteFile);
+            return ResponseEntity.ok("Файл успешно добавлен в избранное");
+        }
+        return new ResponseEntity<>(new AppError(HttpStatus.BAD_REQUEST.value(), "Ошибка при добавлении файла в избранное"), HttpStatus.BAD_REQUEST);
+    }
+
+    public ResponseEntity<?> removeFromFavorites(FileFavoriteRequest fileFavoriteRequest){
+        User user = userRepository.findByUsername(fileFavoriteRequest.getUserName()).get();
+        favoriteFileReposiory.deleteFromFavorite(user.getUser_id(), fileFavoriteRequest.getFullPath());
+        return ResponseEntity.ok("Файл успешно удалён из избранного");
+    }
+
     public ResponseEntity<?> renameFile(FileRenameRequest fileRenameRequest) {
         try {
             minioClient.copyObject(CopyObjectArgs
@@ -175,17 +226,5 @@ public class FileService {
         return new String[]{objectName, folderName};
     }
 
-    public FavoriteFile addToFavoriteFile(FileFavoriteRequest fileFavoriteRequest) {
-        FavoriteFile favoriteFile = new FavoriteFile();
-        String path = fileFavoriteRequest.getFullPath();
-        path = path.replaceAll(fileFavoriteRequest.getFileName(), "");
-        if (folderRepository.getFolder(path).isPresent()) {
-            Folder folder = folderRepository.getFolder(path).get();
-            favoriteFile.setFilePath(path);
-            favoriteFile.setUserId(folder.getUserId());
-            favoriteFile.setFolderId(folder.getFolderId());
-            return favoriteFileReposiory.save(favoriteFile);
-        }
-        return favoriteFile;
-    }
+
 }
