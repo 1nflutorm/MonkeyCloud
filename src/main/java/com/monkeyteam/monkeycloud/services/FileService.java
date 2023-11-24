@@ -2,7 +2,13 @@ package com.monkeyteam.monkeycloud.services;
 
 import com.monkeyteam.monkeycloud.dtos.fileDtos.*;
 import com.monkeyteam.monkeycloud.dtos.MinioDto;
+import com.monkeyteam.monkeycloud.entities.FavoriteFile;
+import com.monkeyteam.monkeycloud.entities.Folder;
+import com.monkeyteam.monkeycloud.entities.User;
 import com.monkeyteam.monkeycloud.exeptions.AppError;
+import com.monkeyteam.monkeycloud.repositories.FavoriteFileReposiory;
+import com.monkeyteam.monkeycloud.repositories.FolderRepository;
+import com.monkeyteam.monkeycloud.repositories.UserRepository;
 import com.monkeyteam.monkeycloud.utils.FileAndFolderUtil;
 import io.minio.*;
 import io.minio.messages.Item;
@@ -16,11 +22,33 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
+
+
 
 @Service
 public class FileService {
     private MinioClient minioClient;
     private FileAndFolderUtil fileAndFolderUtil;
+    private FolderRepository folderRepository;
+    private FavoriteFileReposiory favoriteFileReposiory;
+    private UserRepository userRepository;
+
+    @Autowired
+    public void setUserRepository(UserRepository userRepository) {
+        this.userRepository = userRepository;
+    }
+
+    @Autowired
+    public void setFavoriteFileReposiory(FavoriteFileReposiory favoriteFileReposiory) {
+        this.favoriteFileReposiory = favoriteFileReposiory;
+    }
+
+    @Autowired
+    public void setFolderRepository(FolderRepository folderRepository) {
+        this.folderRepository = folderRepository;
+    }
+
 
     @Autowired
     public void setMinioClient(MinioClient minioClient) {
@@ -125,7 +153,28 @@ public class FileService {
         return ResponseEntity.ok("Файл удалён успешно");
     }
 
-    @Transactional
+    public ResponseEntity<?> addToFavoriteFile(FileFavoriteRequest fileFavoriteRequest) {
+        User user = userRepository.findByUsername(fileFavoriteRequest.getUserName()).get();
+        FavoriteFile favoriteFile = new FavoriteFile();
+        String path = fileFavoriteRequest.getFullPath();
+        Optional<Folder> optional = folderRepository.findFolderByUserIdAndPath(user.getUser_id(), path);
+        if (optional.isPresent()) {
+            Folder folder = optional.get();
+            favoriteFile.setFilePath(path);
+            favoriteFile.setUserId(folder.getUserId());
+            favoriteFile.setFolderId(folder.getFolderId());
+            favoriteFileReposiory.save(favoriteFile);
+            return ResponseEntity.ok("Файл успешно добавлен в избранное");
+        }
+        return new ResponseEntity<>(new AppError(HttpStatus.BAD_REQUEST.value(), "Ошибка при добавлении файла в избранное"), HttpStatus.BAD_REQUEST);
+    }
+
+    public ResponseEntity<?> removeFromFavorites(FileFavoriteRequest fileFavoriteRequest){
+        User user = userRepository.findByUsername(fileFavoriteRequest.getUserName()).get();
+        favoriteFileReposiory.deleteFromFavorite(user.getUser_id(), fileFavoriteRequest.getFullPath());
+        return ResponseEntity.ok("Файл успешно удалён из избранного");
+    }
+
     public ResponseEntity<?> renameFile(FileRenameRequest fileRenameRequest) {
         try {
             minioClient.copyObject(CopyObjectArgs
@@ -149,10 +198,3 @@ public class FileService {
 
 
 }
-/*
-Error creating bean with name 'folderController' defined in file [C:\Users\1nflu\source\repos\MonkeyCloud\target\classes\com\monkeyteam\monkeycloud\controllers\FolderController.class]: Unsatisfied dependency expressed through constructor parameter 0;
-nested exception is org.springframework.beans.factory.UnsatisfiedDependencyException: Error creating bean with name 'folderService': Unsatisfied dependency expressed through method 'setFileAndFolderUtil' parameter 0;
- nested exception is org.springframework.beans.factory.UnsatisfiedDependencyException: Error creating bean with name 'fileAndFolderUtil': Unsatisfied dependency expressed through method 'setInheritorFoldersRepository' parameter 0;
- nested exception is org.springframework.beans.factory.BeanCreationException: Error creating bean with name 'inheritorFoldersRepository' defined in com.monkeyteam.monkeycloud.repositories.InheritorFoldersRepository defined in @EnableJpaRepositories declared on JpaRepositoriesRegistrar.EnableJpaRepositoriesConfiguration: Invocation of init method failed;
- nested exception is java.lang.IllegalArgumentException: This class [class com.monkeyteam.monkeycloud.entities.InheritorFolder] does not define an IdClass
-*/
