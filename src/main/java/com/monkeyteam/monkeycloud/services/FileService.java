@@ -10,8 +10,11 @@ import com.monkeyteam.monkeycloud.repositories.FavoriteFileReposiory;
 import com.monkeyteam.monkeycloud.repositories.FolderRepository;
 import com.monkeyteam.monkeycloud.repositories.UserRepository;
 import com.monkeyteam.monkeycloud.utils.FileAndFolderUtil;
+
+
 import io.minio.*;
 import io.minio.messages.Item;
+import org.apache.tomcat.jni.File;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -26,9 +29,12 @@ import java.util.Optional;
 
 
 
+import static java.util.Collections.replaceAll;
+
 @Service
 public class FileService {
     private MinioClient minioClient;
+
     private FileAndFolderUtil fileAndFolderUtil;
     private FolderRepository folderRepository;
     private FavoriteFileReposiory favoriteFileReposiory;
@@ -50,14 +56,22 @@ public class FileService {
     }
 
 
+    
+
+
     @Autowired
     public void setMinioClient(MinioClient minioClient) {
         this.minioClient = minioClient;
     }
 
     @Autowired
-    public void setFileAndFolderUtil(FileAndFolderUtil fileAndFolderUtil) {
-        this.fileAndFolderUtil = fileAndFolderUtil;
+    public void setFavoriteFileReposiory(FavoriteFileReposiory favoriteFileReposiory) {
+        this.favoriteFileReposiory = favoriteFileReposiory;
+    }
+
+    @Autowired
+    public void setFolderRepository(FolderRepository folderRepository) {
+        this.folderRepository = folderRepository;
     }
 
     private List<MinioDto> getUserFiles(String username, String folder, boolean isRecursive) throws Exception {
@@ -71,7 +85,7 @@ public class FileService {
         results.forEach(result -> {
             try {
                 Item item = result.get();
-                String[] newNames = fileAndFolderUtil.getCorrectNamesForItem(item, folder);
+                String[] newNames = getCorrectNamesForItem(item, folder);
                 MinioDto object = new MinioDto(
                         username,
                         item.isDir(),
@@ -194,6 +208,22 @@ public class FileService {
             return new ResponseEntity<>(new AppError(HttpStatus.BAD_REQUEST.value(), "Ошибка при переименовании файла"), HttpStatus.BAD_REQUEST);
         }
         return ResponseEntity.ok("Файл переименован успешно");
+    }
+
+    private String[] getCorrectNamesForItem(Item item, String folder) {
+        String objectName = "";
+        int lastSlash = item.objectName().lastIndexOf('/');
+        if (!item.isDir()) {//если не дитректория, то удаляем последний слэш
+            objectName = item.objectName().substring(lastSlash + 1);
+        } else {// если директория, то удаляем предпоследний и послдежний слэш
+            objectName = item.objectName().substring(0, lastSlash);
+            objectName = objectName.substring(objectName.lastIndexOf('/') + 1);
+        }
+        lastSlash = folder.lastIndexOf('/');
+        String folderName = "";
+        if (lastSlash == folder.length() - 1 && lastSlash != -1)
+            folderName = folder.substring(0, lastSlash);
+        return new String[]{objectName, folderName};
     }
 
 
