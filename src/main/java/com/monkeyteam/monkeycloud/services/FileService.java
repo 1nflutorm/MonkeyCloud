@@ -149,3 +149,10 @@ public class FileService {
 
 
 }
+/*
+Error creating bean with name 'folderController' defined in file [C:\Users\1nflu\source\repos\MonkeyCloud\target\classes\com\monkeyteam\monkeycloud\controllers\FolderController.class]: Unsatisfied dependency expressed through constructor parameter 0;
+nested exception is org.springframework.beans.factory.UnsatisfiedDependencyException: Error creating bean with name 'folderService': Unsatisfied dependency expressed through method 'setFileAndFolderUtil' parameter 0;
+ nested exception is org.springframework.beans.factory.UnsatisfiedDependencyException: Error creating bean with name 'fileAndFolderUtil': Unsatisfied dependency expressed through method 'setInheritorFoldersRepository' parameter 0;
+ nested exception is org.springframework.beans.factory.BeanCreationException: Error creating bean with name 'inheritorFoldersRepository' defined in com.monkeyteam.monkeycloud.repositories.InheritorFoldersRepository defined in @EnableJpaRepositories declared on JpaRepositoriesRegistrar.EnableJpaRepositoriesConfiguration: Invocation of init method failed;
+ nested exception is java.lang.IllegalArgumentException: This class [class com.monkeyteam.monkeycloud.entities.InheritorFolder] does not define an IdClass
+*/

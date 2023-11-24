@@ -29,6 +29,16 @@ public class FolderService {
     private FileAndFolderUtil fileAndFolderUtil;
 
     @Autowired
+    public void setFileAndFolderUtil(FileAndFolderUtil fileAndFolderUtil){
+        this.fileAndFolderUtil = fileAndFolderUtil;
+    }
+
+    @Autowired
+    public void setFileController(FileService fileService) {
+        this.fileService = fileService;
+    }
+
+    @Autowired
     public void setMinioClient(MinioClient minioClient) {
         this.minioClient = minioClient;
     }
@@ -85,10 +95,10 @@ public class FolderService {
                 minioClient.copyObject(CopyObjectArgs
                         .builder()
                         .bucket(folderRenameRequest.getUsername())
-                        .object(folderRenameRequest.getFullPath().replace(folderRenameRequest.getOldName(), folderRenameRequest.getNewName()))
+                        .object(folderRenameRequest.getFullPath() + folderRenameRequest.getNewName() + "/")
                         .source(CopySource.builder()
                                 .bucket(folderRenameRequest.getUsername())
-                                .object(folderRenameRequest.getFullPath())
+                                .object(folderRenameRequest.getFullPath() + folderRenameRequest.getOldName() + "/")
                                 .build())
                         .build());
 

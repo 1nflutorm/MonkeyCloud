@@ -8,5 +8,5 @@ import java.util.Optional;
 
 @Repository
 public interface InheritorFoldersRepository extends CrudRepository <InheritorFolder, InheritorFolder> {
-    Optional<InheritorFolder> findByIds(String parentId, String childId);
+    //Optional<InheritorFolder> findByIds(String parentId, String childId);
 }
