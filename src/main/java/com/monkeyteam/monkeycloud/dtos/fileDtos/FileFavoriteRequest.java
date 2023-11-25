@@ -6,6 +6,6 @@ import lombok.Data;
 @Data
 @AllArgsConstructor
 public class FileFavoriteRequest {
-    private String userName;
+    private String username;
     private String fullPath;
 }

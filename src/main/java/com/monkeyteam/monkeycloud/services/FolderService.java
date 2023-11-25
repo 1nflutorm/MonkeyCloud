@@ -62,6 +62,7 @@ public class FolderService {
                     .bucket(folderUploadRequest.getUsername())
                     .objects(snowballObject)
                     .build());
+
         } catch (Exception e) {
             return new ResponseEntity<>(new AppError(HttpStatus.BAD_REQUEST.value(), "Ошибка при загрузке папки"), HttpStatus.BAD_REQUEST);
         }

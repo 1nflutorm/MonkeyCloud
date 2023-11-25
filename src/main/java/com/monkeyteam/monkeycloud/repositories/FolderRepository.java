@@ -14,7 +14,7 @@ import java.util.Optional;
 public interface FolderRepository extends CrudRepository<Folder, Long> {
     Optional<Folder> findByFolderName(String folderName);
 
-    @Query(value = "SELECT * FROM folders WHERE folder_path = ?", nativeQuery = true)
-    Optional<Folder> getFolder(String folderPath);
+    @Query(value = "SELECT * FROM folders WHERE user_id = ? and folder_path = ?", nativeQuery = true)
+    Optional<Folder> findFolderByUserIdAndPath(Long user_id, String folderPath);
 
 }

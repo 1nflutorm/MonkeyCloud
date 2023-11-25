@@ -19,6 +19,7 @@ import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
+import java.util.List;
 import java.util.stream.Collectors;
 
 @Component
@@ -44,6 +45,14 @@ public class JwtRequestFilter extends OncePerRequestFilter {
                 return;
             }
         }
+        if(authHeader == ""){
+            List<String> role = List.of("ROLE_UNAUTORIZED");
+            UsernamePasswordAuthenticationToken token = new UsernamePasswordAuthenticationToken(
+                    "unautorized",
+                    null,
+                    role.stream().map(SimpleGrantedAuthority::new).collect(Collectors.toList()));
+            SecurityContextHolder.getContext().setAuthentication(token);
+        }
         if (username != null && SecurityContextHolder.getContext().getAuthentication() == null) {
             UsernamePasswordAuthenticationToken token = new UsernamePasswordAuthenticationToken(
                     username,
@@ -55,12 +64,3 @@ public class JwtRequestFilter extends OncePerRequestFilter {
         filterChain.doFilter(request, response);
     }
 }
-
-
-
-
-
-
-
-
-
