@@ -1,7 +1,7 @@
 package com.monkeyteam.monkeycloud.controllers;
 
-import com.monkeyteam.monkeycloud.dtos.jwtDtos.JwtRequest;
-import com.monkeyteam.monkeycloud.dtos.authDtos.RegistrationUserDto;
+import com.monkeyteam.monkeycloud.repositories.dtos.jwtDtos.JwtRequest;
+import com.monkeyteam.monkeycloud.repositories.dtos.authDtos.RegistrationUserDto;
 import com.monkeyteam.monkeycloud.entities.RefreshToken;
 import com.monkeyteam.monkeycloud.exeptions.AppError;
 import com.monkeyteam.monkeycloud.exeptions.RefreshTokenExeption;

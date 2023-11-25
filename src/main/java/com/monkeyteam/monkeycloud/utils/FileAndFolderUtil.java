@@ -20,7 +20,6 @@ public class FileAndFolderUtil {
 
     private UserRepository userRepository;
     private FolderRepository folderRepository;
-
     private InheritorFoldersRepository inheritorFoldersRepository;
     @Autowired
     public void setUserRepository(UserRepository userRepository){
@@ -75,11 +74,13 @@ public class FileAndFolderUtil {
             if(lastSlash == -1)
                 return;
 
-            Optional<Folder> parentFolder = folderRepository.findFolderByUserIdAndPath(userId, path);
+            String parentFolderPath = path.substring(0, lastSlash);
+
+            Optional<Folder> parentFolder = folderRepository.findFolderByUserIdAndPath(userId, parentFolderPath);
             Long parentFolderId;
             if(!parentFolder.isPresent()) {
-                String folderName = path.substring(path.lastIndexOf('/') + 1);
-                Folder newFolder = saveFolder(folderName, path, userId);//родительская папка
+                String folderName = path.substring(parentFolderPath.lastIndexOf('/') + 1);
+                Folder newFolder = saveFolder(folderName, parentFolderPath, userId);//родительская папка
                 parentFolderId = newFolder.getFolderId();
             } else {
                 parentFolderId = parentFolder.get().getFolderId();

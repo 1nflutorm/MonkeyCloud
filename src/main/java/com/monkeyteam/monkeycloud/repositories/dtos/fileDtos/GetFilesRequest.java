@@ -1,4 +1,4 @@
-package com.monkeyteam.monkeycloud.dtos.fileDtos;
+package com.monkeyteam.monkeycloud.repositories.dtos.fileDtos;
 
 import lombok.Data;
 

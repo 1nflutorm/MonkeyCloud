@@ -1,8 +1,7 @@
 package com.monkeyteam.monkeycloud.controllers;
 
-import com.monkeyteam.monkeycloud.dtos.ListOfData;
-import com.monkeyteam.monkeycloud.dtos.fileDtos.*;
-import com.monkeyteam.monkeycloud.repositories.FavoriteFileReposiory;
+import com.monkeyteam.monkeycloud.repositories.dtos.ListOfData;
+import com.monkeyteam.monkeycloud.repositories.dtos.fileDtos.*;
 import com.monkeyteam.monkeycloud.services.FileService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;

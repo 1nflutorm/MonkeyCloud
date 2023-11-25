@@ -12,7 +12,7 @@ import java.util.Optional;
 
 @Repository
 public interface FavoriteFileReposiory extends CrudRepository<FavoriteFile, Long> {
-    Optional<User> findByUserID(Long userID);
+    //Optional<User> findByUserId(Long userID);
 
 
     @Modifying

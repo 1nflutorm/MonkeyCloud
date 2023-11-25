@@ -1,7 +1,6 @@
 package com.monkeyteam.monkeycloud.services;
 
-import com.monkeyteam.monkeycloud.dtos.fileDtos.*;
-import com.monkeyteam.monkeycloud.dtos.MinioDto;
+import com.monkeyteam.monkeycloud.repositories.dtos.MinioDto;
 import com.monkeyteam.monkeycloud.entities.FavoriteFile;
 import com.monkeyteam.monkeycloud.entities.Folder;
 import com.monkeyteam.monkeycloud.entities.User;
@@ -9,6 +8,7 @@ import com.monkeyteam.monkeycloud.exeptions.AppError;
 import com.monkeyteam.monkeycloud.repositories.FavoriteFileReposiory;
 import com.monkeyteam.monkeycloud.repositories.FolderRepository;
 import com.monkeyteam.monkeycloud.repositories.UserRepository;
+import com.monkeyteam.monkeycloud.repositories.dtos.fileDtos.*;
 import com.monkeyteam.monkeycloud.utils.FileAndFolderUtil;
 import io.minio.*;
 import io.minio.messages.Item;
@@ -17,7 +17,6 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 
-import javax.transaction.Transactional;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayList;

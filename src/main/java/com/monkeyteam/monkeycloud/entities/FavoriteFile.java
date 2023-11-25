@@ -3,11 +3,13 @@ package com.monkeyteam.monkeycloud.entities;
 import lombok.Data;
 
 import javax.persistence.*;
+import java.io.Serializable;
 
 @Entity
 @Data
 @Table(name = "favorite_files")
-public class FavoriteFile {
+@IdClass(FavoriteFile.class)
+public class FavoriteFile implements Serializable {
     @Id
     @Column(name = "user_id")
     private long userId;

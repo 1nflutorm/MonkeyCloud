@@ -1,9 +1,9 @@
 package com.monkeyteam.monkeycloud.services;
 
-import com.monkeyteam.monkeycloud.dtos.folderDtos.FolderDeleteRequest;
-import com.monkeyteam.monkeycloud.dtos.folderDtos.FolderRenameRequest;
-import com.monkeyteam.monkeycloud.dtos.folderDtos.FolderUploadRequest;
-import com.monkeyteam.monkeycloud.dtos.MinioDto;
+import com.monkeyteam.monkeycloud.repositories.dtos.folderDtos.FolderDeleteRequest;
+import com.monkeyteam.monkeycloud.repositories.dtos.folderDtos.FolderRenameRequest;
+import com.monkeyteam.monkeycloud.repositories.dtos.folderDtos.FolderUploadRequest;
+import com.monkeyteam.monkeycloud.repositories.dtos.MinioDto;
 import com.monkeyteam.monkeycloud.exeptions.AppError;
 import com.monkeyteam.monkeycloud.utils.FileAndFolderUtil;
 import io.minio.*;
