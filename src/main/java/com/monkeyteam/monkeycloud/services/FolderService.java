@@ -5,7 +5,6 @@ import com.monkeyteam.monkeycloud.repositories.dtos.folderDtos.FolderRenameReque
 import com.monkeyteam.monkeycloud.repositories.dtos.folderDtos.FolderUploadRequest;
 import com.monkeyteam.monkeycloud.repositories.dtos.MinioDto;
 import com.monkeyteam.monkeycloud.exeptions.AppError;
-import com.monkeyteam.monkeycloud.utils.FileAndFolderUtil;
 import io.minio.*;
 import io.minio.messages.DeleteError;
 import io.minio.messages.DeleteObject;
@@ -25,18 +24,6 @@ import java.util.List;
 public class FolderService {
     private FileService fileService;
     private MinioClient minioClient;
-
-    private FileAndFolderUtil fileAndFolderUtil;
-
-    @Autowired
-    public void setFileAndFolderUtil(FileAndFolderUtil fileAndFolderUtil){
-        this.fileAndFolderUtil = fileAndFolderUtil;
-    }
-
-    @Autowired
-    public void setFileController(FileService fileService) {
-        this.fileService = fileService;
-    }
 
     @Autowired
     public void setMinioClient(MinioClient minioClient) {
@@ -69,14 +56,12 @@ public class FolderService {
 
     public ResponseEntity<?> uploadFolder(FolderUploadRequest folderUploadRequest) {
         try {
-            List<SnowballObject> snowballObjects = convertToSnowballObjects(folderUploadRequest);
+            List<SnowballObject> snowballObject = convertToSnowballObjects(folderUploadRequest);
             minioClient.uploadSnowballObjects(UploadSnowballObjectsArgs
                     .builder()
                     .bucket(folderUploadRequest.getUsername())
-                    .objects(snowballObjects)
+                    .objects(snowballObject)
                     .build());
-
-            fileAndFolderUtil.addDirsToDataBaseFromUploadedFolder(snowballObjects, folderUploadRequest.getUsername());///!!!НЕ ТЕСТИРОВАЛОСЬ
         } catch (Exception e) {
             return new ResponseEntity<>(new AppError(HttpStatus.BAD_REQUEST.value(), "Ошибка при загрузке папки"), HttpStatus.BAD_REQUEST);
         }
@@ -95,10 +80,10 @@ public class FolderService {
                 minioClient.copyObject(CopyObjectArgs
                         .builder()
                         .bucket(folderRenameRequest.getUsername())
-                        .object(folderRenameRequest.getFullPath() + folderRenameRequest.getNewName() + "/")
+                        .object(folderRenameRequest.getFullPath().replace(folderRenameRequest.getOldName(), folderRenameRequest.getNewName()))
                         .source(CopySource.builder()
                                 .bucket(folderRenameRequest.getUsername())
-                                .object(folderRenameRequest.getFullPath() + folderRenameRequest.getOldName() + "/")
+                                .object(folderRenameRequest.getFullPath())
                                 .build())
                         .build());
 
