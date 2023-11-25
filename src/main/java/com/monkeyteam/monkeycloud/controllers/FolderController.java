@@ -1,8 +1,8 @@
 package com.monkeyteam.monkeycloud.controllers;
 
-import com.monkeyteam.monkeycloud.repositories.dtos.folderDtos.FolderDeleteRequest;
-import com.monkeyteam.monkeycloud.repositories.dtos.folderDtos.FolderRenameRequest;
-import com.monkeyteam.monkeycloud.repositories.dtos.folderDtos.FolderUploadRequest;
+import com.monkeyteam.monkeycloud.dtos.folderDtos.FolderDeleteRequest;
+import com.monkeyteam.monkeycloud.dtos.folderDtos.FolderRenameRequest;
+import com.monkeyteam.monkeycloud.dtos.folderDtos.FolderUploadRequest;
 import com.monkeyteam.monkeycloud.services.FolderService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;

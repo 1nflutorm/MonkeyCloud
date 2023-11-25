@@ -1,10 +1,10 @@
 package com.monkeyteam.monkeycloud.services;
 
-import com.monkeyteam.monkeycloud.repositories.dtos.SessionControl;
-import com.monkeyteam.monkeycloud.repositories.dtos.UserDto;
-import com.monkeyteam.monkeycloud.repositories.dtos.authDtos.RegistrationUserDto;
-import com.monkeyteam.monkeycloud.repositories.dtos.jwtDtos.JwtRequest;
-import com.monkeyteam.monkeycloud.repositories.dtos.jwtDtos.JwtResponse;
+import com.monkeyteam.monkeycloud.dtos.SessionControl;
+import com.monkeyteam.monkeycloud.dtos.UserDto;
+import com.monkeyteam.monkeycloud.dtos.authDtos.RegistrationUserDto;
+import com.monkeyteam.monkeycloud.dtos.jwtDtos.JwtRequest;
+import com.monkeyteam.monkeycloud.dtos.jwtDtos.JwtResponse;
 import com.monkeyteam.monkeycloud.entities.Folder;
 import com.monkeyteam.monkeycloud.entities.RefreshToken;
 import com.monkeyteam.monkeycloud.entities.User;

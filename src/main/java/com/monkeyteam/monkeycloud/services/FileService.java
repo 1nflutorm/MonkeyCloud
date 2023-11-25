@@ -1,20 +1,19 @@
 package com.monkeyteam.monkeycloud.services;
 
-import com.monkeyteam.monkeycloud.repositories.dtos.MinioDto;
+import com.monkeyteam.monkeycloud.dtos.MinioDto;
+import com.monkeyteam.monkeycloud.dtos.fileDtos.*;
 import com.monkeyteam.monkeycloud.entities.FavoriteFile;
 import com.monkeyteam.monkeycloud.entities.Folder;
 import com.monkeyteam.monkeycloud.entities.User;
 import com.monkeyteam.monkeycloud.exeptions.AppError;
-import com.monkeyteam.monkeycloud.repositories.FavoriteFileReposiory;
+import com.monkeyteam.monkeycloud.repositories.FavoriteFileRepository;
 import com.monkeyteam.monkeycloud.repositories.FolderRepository;
 import com.monkeyteam.monkeycloud.repositories.UserRepository;
-import com.monkeyteam.monkeycloud.repositories.dtos.fileDtos.*;
 import com.monkeyteam.monkeycloud.utils.FileAndFolderUtil;
 
 
 import io.minio.*;
 import io.minio.messages.Item;
-import org.apache.tomcat.jni.File;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -23,12 +22,9 @@ import org.springframework.stereotype.Service;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 import java.util.Optional;
-
-
-
-import static java.util.Collections.replaceAll;
 
 @Service
 public class FileService {
@@ -36,7 +32,7 @@ public class FileService {
 
     private FileAndFolderUtil fileAndFolderUtil;
     private FolderRepository folderRepository;
-    private FavoriteFileReposiory favoriteFileReposiory;
+    private FavoriteFileRepository favoriteFileRepository;
     private UserRepository userRepository;
 
     @Autowired
@@ -45,17 +41,9 @@ public class FileService {
     }
 
     @Autowired
-    public void setFavoriteFileReposiory(FavoriteFileReposiory favoriteFileReposiory) {
-        this.favoriteFileReposiory = favoriteFileReposiory;
-    }
-
-    @Autowired
     public void setFolderRepository(FolderRepository folderRepository) {
         this.folderRepository = folderRepository;
     }
-
-
-    
 
 
     @Autowired
@@ -64,13 +52,13 @@ public class FileService {
     }
 
     @Autowired
-    public void setFavoriteFileReposiory(FavoriteFileReposiory favoriteFileReposiory) {
-        this.favoriteFileReposiory = favoriteFileReposiory;
+    public void setFavoriteFileRepository(FavoriteFileRepository favoriteFileRepository) {
+        this.favoriteFileRepository = favoriteFileRepository;
     }
 
     @Autowired
-    public void setFolderRepository(FolderRepository folderRepository) {
-        this.folderRepository = folderRepository;
+    public void setFileAndFolderUtil(FileAndFolderUtil fileAndFolderUtil) {
+        this.fileAndFolderUtil = fileAndFolderUtil;
     }
 
     private List<MinioDto> getUserFiles(String username, String folder, boolean isRecursive) throws Exception {
@@ -84,12 +72,16 @@ public class FileService {
         results.forEach(result -> {
             try {
                 Item item = result.get();
-                String[] newNames = getCorrectNamesForItem(item, folder);
+
+                String[] newNames = fileAndFolderUtil.getCorrectNamesForItem(item, folder);
                 MinioDto object = new MinioDto(
                         username,
                         item.isDir(),
                         newNames[1].equals("") ? username : username + "/" + newNames[1],
-                        newNames[0]);
+                        newNames[0],
+                        item.size(),
+                        false,
+                        item.lastModified().toString());
                 files.add(object);
             } catch (Exception e) {
                 e.printStackTrace();
@@ -153,6 +145,7 @@ public class FileService {
         return ResponseEntity.ok("Файл скачен успешно");
     }
 
+
     public ResponseEntity<?> deleteFile(FileDeleteRequest fileDeleteRequest) {
         try {
             minioClient.removeObject(RemoveObjectArgs
@@ -167,7 +160,7 @@ public class FileService {
     }
 
     public ResponseEntity<?> addToFavoriteFile(FileFavoriteRequest fileFavoriteRequest) {
-        User user = userRepository.findByUsername(fileFavoriteRequest.getUserName()).get();
+        User user = userRepository.findByUsername(fileFavoriteRequest.getUsername()).get();
         FavoriteFile favoriteFile = new FavoriteFile();
         String path = fileFavoriteRequest.getFullPath();
         Optional<Folder> optional = folderRepository.findFolderByUserIdAndPath(user.getUser_id(), path);
@@ -176,15 +169,15 @@ public class FileService {
             favoriteFile.setFilePath(path);
             favoriteFile.setUserId(folder.getUserId());
             favoriteFile.setFolderId(folder.getFolderId());
-            favoriteFileReposiory.save(favoriteFile);
+            favoriteFileRepository.save(favoriteFile);
             return ResponseEntity.ok("Файл успешно добавлен в избранное");
         }
         return new ResponseEntity<>(new AppError(HttpStatus.BAD_REQUEST.value(), "Ошибка при добавлении файла в избранное"), HttpStatus.BAD_REQUEST);
     }
 
-    public ResponseEntity<?> removeFromFavorites(FileFavoriteRequest fileFavoriteRequest){
-        User user = userRepository.findByUsername(fileFavoriteRequest.getUserName()).get();
-        favoriteFileReposiory.deleteFromFavorite(user.getUser_id(), fileFavoriteRequest.getFullPath());
+    public ResponseEntity<?> removeFromFavorites(FileFavoriteRequest fileFavoriteRequest) {
+        User user = userRepository.findByUsername(fileFavoriteRequest.getUsername()).get();
+        favoriteFileRepository.deleteFromFavorite(user.getUser_id(), fileFavoriteRequest.getFullPath());
         return ResponseEntity.ok("Файл успешно удалён из избранного");
     }
 
@@ -208,22 +201,5 @@ public class FileService {
         }
         return ResponseEntity.ok("Файл переименован успешно");
     }
-
-    private String[] getCorrectNamesForItem(Item item, String folder) {
-        String objectName = "";
-        int lastSlash = item.objectName().lastIndexOf('/');
-        if (!item.isDir()) {//если не дитректория, то удаляем последний слэш
-            objectName = item.objectName().substring(lastSlash + 1);
-        } else {// если директория, то удаляем предпоследний и послдежний слэш
-            objectName = item.objectName().substring(0, lastSlash);
-            objectName = objectName.substring(objectName.lastIndexOf('/') + 1);
-        }
-        lastSlash = folder.lastIndexOf('/');
-        String folderName = "";
-        if (lastSlash == folder.length() - 1 && lastSlash != -1)
-            folderName = folder.substring(0, lastSlash);
-        return new String[]{objectName, folderName};
-    }
-
 
 }

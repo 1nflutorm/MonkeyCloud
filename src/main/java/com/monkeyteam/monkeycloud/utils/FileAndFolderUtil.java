@@ -41,7 +41,7 @@ public class FileAndFolderUtil {
         int lastSlash = item.objectName().lastIndexOf('/');
         if(!item.isDir()) {//если не дитректория, то удаляем последний слэш
             objectName = item.objectName().substring(lastSlash + 1);
-        } else {// если директория, то удаляем предпоследний и послдежний слэш
+        } else {// если директория, то удаляем предпоследний и послдедний слэш
             objectName = item.objectName().substring(0, lastSlash);
             objectName = objectName.substring(objectName.lastIndexOf('/') + 1);
         }

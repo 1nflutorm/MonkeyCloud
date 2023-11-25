@@ -1,7 +1,7 @@
 package com.monkeyteam.monkeycloud.controllers;
 
-import com.monkeyteam.monkeycloud.repositories.dtos.ListOfData;
-import com.monkeyteam.monkeycloud.repositories.dtos.fileDtos.*;
+import com.monkeyteam.monkeycloud.dtos.ListOfData;
+import com.monkeyteam.monkeycloud.dtos.fileDtos.*;
 import com.monkeyteam.monkeycloud.services.FileService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -41,12 +41,12 @@ public class FileController {
     }
 
     @GetMapping("/getFiles")
-    public ResponseEntity<?> getFiles(@ModelAttribute GetFilesRequest filesRequest) {
+    public ResponseEntity<?> getFiles(@RequestBody GetFilesRequest filesRequest) {
         return new ResponseEntity<>(new ListOfData(fileService.getUserFiles(filesRequest)), HttpStatus.OK);
     }
 
     @PostMapping("/addToFavorite")
-    public ResponseEntity<?> addToFavorite(@ModelAttribute FileFavoriteRequest fileFavoriteRequest){
+    public ResponseEntity<?> addToFavorite(@RequestBody FileFavoriteRequest fileFavoriteRequest){
         return fileService.addToFavoriteFile(fileFavoriteRequest);
     }
 

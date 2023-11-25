@@ -1,6 +1,6 @@
 package com.monkeyteam.monkeycloud.services;
 
-import com.monkeyteam.monkeycloud.repositories.dtos.authDtos.RegistrationUserDto;
+import com.monkeyteam.monkeycloud.dtos.authDtos.RegistrationUserDto;
 import com.monkeyteam.monkeycloud.entities.User;
 import com.monkeyteam.monkeycloud.repositories.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;

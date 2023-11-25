@@ -42,6 +42,7 @@ public class SecurityConfig implements WebMvcConfigurer {
                 .authorizeRequests()
                 .antMatchers("/main").authenticated()
                 .antMatchers("/admin").hasRole("ADMIN")
+                .antMatchers("/uploadFile").hasRole("USER")
                 .anyRequest().permitAll()
                 .and()
                 .sessionManagement().sessionCreationPolicy(SessionCreationPolicy.STATELESS)

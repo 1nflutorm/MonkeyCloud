@@ -1,9 +1,9 @@
 package com.monkeyteam.monkeycloud.services;
 
-import com.monkeyteam.monkeycloud.repositories.dtos.folderDtos.FolderDeleteRequest;
-import com.monkeyteam.monkeycloud.repositories.dtos.folderDtos.FolderRenameRequest;
-import com.monkeyteam.monkeycloud.repositories.dtos.folderDtos.FolderUploadRequest;
-import com.monkeyteam.monkeycloud.repositories.dtos.MinioDto;
+import com.monkeyteam.monkeycloud.dtos.folderDtos.FolderDeleteRequest;
+import com.monkeyteam.monkeycloud.dtos.folderDtos.FolderRenameRequest;
+import com.monkeyteam.monkeycloud.dtos.folderDtos.FolderUploadRequest;
+import com.monkeyteam.monkeycloud.dtos.MinioDto;
 import com.monkeyteam.monkeycloud.exeptions.AppError;
 import io.minio.*;
 import io.minio.messages.DeleteError;
@@ -62,6 +62,7 @@ public class FolderService {
                     .bucket(folderUploadRequest.getUsername())
                     .objects(snowballObject)
                     .build());
+
         } catch (Exception e) {
             return new ResponseEntity<>(new AppError(HttpStatus.BAD_REQUEST.value(), "Ошибка при загрузке папки"), HttpStatus.BAD_REQUEST);
         }
