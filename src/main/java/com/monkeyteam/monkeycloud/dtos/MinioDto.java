@@ -12,7 +12,8 @@ public class MinioDto {
     private Boolean isDir;
     private String path;
     private String name;
-    private Long size;
+    private String breadCrums;
+    private String size;
     private Boolean isFavorite;
     private String date;
 }

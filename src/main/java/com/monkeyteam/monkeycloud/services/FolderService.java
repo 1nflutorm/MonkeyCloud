@@ -30,10 +30,15 @@ public class FolderService {
         this.minioClient = minioClient;
     }
 
+    @Autowired
+    public void setFileService (FileService fileService){
+        this.fileService = fileService;
+    }
+
     private List<DeleteObject> convertToDeleteObjects(List<MinioDto> files) {
         List<DeleteObject> objects = new ArrayList<>();
         for (MinioDto file : files) {
-            objects.add(new DeleteObject(file.getUsername() + file.getPath()));
+            objects.add(new DeleteObject(file.getPath()));
         }
         return objects;
     }
@@ -72,32 +77,38 @@ public class FolderService {
     public ResponseEntity<?> renameFolder(FolderRenameRequest folderRenameRequest) {
         List<MinioDto> files = null;
         try {
-            files = fileService.getAllUserFiles(folderRenameRequest.getUsername(), folderRenameRequest.getFullPath());
+            files = fileService.getAllUserFiles(folderRenameRequest.getUsername(), folderRenameRequest.getFullPath() + folderRenameRequest.getOldName());
         } catch (Exception e) {
             return new ResponseEntity<>(new AppError(HttpStatus.BAD_REQUEST.value(), "Ошибка при переименовании папки"), HttpStatus.BAD_REQUEST);
         }
         for (MinioDto file : files) {
             try {
+                int start = (folderRenameRequest.getFullPath() + folderRenameRequest.getOldName()).length();
+                String path = file.getPath();
+                path = path.substring(start);
+                path = folderRenameRequest.getFullPath() + folderRenameRequest.getNewName() + path;
+
+                String first = folderRenameRequest.getFullPath() +  folderRenameRequest.getNewName() + "/" + file.getPath();
+                String sec = file.getPath();
                 minioClient.copyObject(CopyObjectArgs
                         .builder()
                         .bucket(folderRenameRequest.getUsername())
-                        .object(folderRenameRequest.getFullPath().replace(folderRenameRequest.getOldName(), folderRenameRequest.getNewName()))
+                        .object(path)
                         .source(CopySource.builder()
                                 .bucket(folderRenameRequest.getUsername())
-                                .object(folderRenameRequest.getFullPath())
+                                .object(file.getPath())
                                 .build())
                         .build());
-
-                FolderDeleteRequest folderDeleteRequest = new FolderDeleteRequest(folderRenameRequest.getUsername(), folderRenameRequest.getFullPath());
-                deleteFolder(folderDeleteRequest);
             } catch (Exception e) {
                 return new ResponseEntity<>(new AppError(HttpStatus.BAD_REQUEST.value(), "Ошибка при переименовании папки"), HttpStatus.BAD_REQUEST);
             }
         }
+        FolderDeleteRequest folderDeleteRequest = new FolderDeleteRequest(folderRenameRequest.getUsername(), folderRenameRequest.getFullPath() + folderRenameRequest.getOldName());
+        deleteFolder(folderDeleteRequest);
         return ResponseEntity.ok("Папка переименовалась корректно");
     }
 
-    public void deleteFolder(FolderDeleteRequest folderDeleteRequest) {
+    public ResponseEntity<?> deleteFolder(FolderDeleteRequest folderDeleteRequest) {
         List<MinioDto> files = null;
         try {
             files = fileService.getAllUserFiles(folderDeleteRequest.getUsername(), folderDeleteRequest.getFullPath());
@@ -120,5 +131,6 @@ public class FolderService {
                 e.printStackTrace();
             }
         });
+        return ResponseEntity.ok("папка удалена");
     }
 }
