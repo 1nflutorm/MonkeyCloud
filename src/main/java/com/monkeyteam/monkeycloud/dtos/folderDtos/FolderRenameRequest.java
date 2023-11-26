@@ -7,7 +7,7 @@ import lombok.Data;
 @AllArgsConstructor
 public class FolderRenameRequest {
     private String username;
+    private String fullPath;
     private String oldName;
     private String newName;
-    private String fullPath;
 }

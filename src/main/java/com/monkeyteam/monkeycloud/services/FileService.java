@@ -15,6 +15,7 @@ import com.monkeyteam.monkeycloud.utils.FileAndFolderUtil;
 import io.minio.*;
 import io.minio.messages.Item;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.core.io.ByteArrayResource;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
@@ -72,16 +73,17 @@ public class FileService {
         results.forEach(result -> {
             try {
                 Item item = result.get();
-
+                String size = Integer.toString((int)item.size() / 1024) + "kb";
                 String[] newNames = fileAndFolderUtil.getCorrectNamesForItem(item, folder);
                 MinioDto object = new MinioDto(
                         username,
                         item.isDir(),
-                        newNames[1].equals("") ? username : username + "/" + newNames[1],
+                        item.objectName(),
                         newNames[0],
-                        item.size(),
+                        newNames[1].equals("") ? username : username + "/" + newNames[1],
+                        size,
                         false,
-                        item.lastModified().toString());
+                        null);
                 files.add(object);
             } catch (Exception e) {
                 e.printStackTrace();
@@ -126,23 +128,19 @@ public class FileService {
         return ResponseEntity.ok("Файл загружен корректно");
     }
 
-    public ResponseEntity<?> downloadFile(FileDownloadRequest fileDownloadRequest) {
-        InputStream inputStream = null;
-        try {
-            inputStream = minioClient.getObject(GetObjectArgs
-                    .builder()
-                    .bucket(fileDownloadRequest.getUsername())
-                    .object(fileDownloadRequest.getFullPath())
-                    .build());
-        } catch (Exception e) {
-            return new ResponseEntity<>(new AppError(HttpStatus.BAD_REQUEST.value(), "Ошибка при скачивании файла"), HttpStatus.BAD_REQUEST);
+    public ByteArrayResource downloadFile(FileDownloadRequest fileDownloadRequest) {
+        GetObjectArgs getObjectArgs = GetObjectArgs.builder()
+                .bucket(fileDownloadRequest.getUsername())
+                .object(fileDownloadRequest.getFullPath())
+                .build();
+        ByteArrayResource byteArrayResource = null;
+        try (GetObjectResponse object = minioClient.getObject(getObjectArgs)) {
+            byteArrayResource = new ByteArrayResource(object.readAllBytes());
         }
-        try {
-            inputStream.close();
-        } catch (IOException ioException) {
-            ioException.printStackTrace();
+        catch (Exception e) {
+            e.printStackTrace();
         }
-        return ResponseEntity.ok("Файл скачен успешно");
+        return byteArrayResource;
     }
 
 

@@ -9,7 +9,9 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
 
-@Controller
+import javax.servlet.http.HttpServletRequest;
+
+@RestController
 @RequiredArgsConstructor
 public class FolderController {
     private final FolderService folderService;
@@ -19,12 +21,14 @@ public class FolderController {
     }
 
     @DeleteMapping("/deleteFolder")
-    public void deleteFile(@ModelAttribute FolderDeleteRequest file) {
-        folderService.deleteFolder(file);
+    public ResponseEntity<?> deleteFile(HttpServletRequest httpServletRequest) {
+        String username = httpServletRequest.getParameter("username");
+        String fullPath = httpServletRequest.getParameter("fullPath");
+        return folderService.deleteFolder(new FolderDeleteRequest(username, fullPath));
     }
 
     @PutMapping("/renameFolder")
-    public ResponseEntity<?> renameFile(@ModelAttribute FolderRenameRequest file) {
+    public ResponseEntity<?> renameFile(@RequestBody FolderRenameRequest file) {
         return folderService.renameFolder(file);
     }
 
