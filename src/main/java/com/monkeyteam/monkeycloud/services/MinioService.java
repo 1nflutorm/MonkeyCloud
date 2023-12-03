@@ -1,6 +1,7 @@
 package com.monkeyteam.monkeycloud.services;
 
 import com.monkeyteam.monkeycloud.repositories.FolderRepository;
+import io.minio.GetObjectArgs;
 import io.minio.MakeBucketArgs;
 import io.minio.MinioClient;
 import io.minio.errors.*;

@@ -6,12 +6,17 @@ import com.monkeyteam.monkeycloud.services.FileService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.ByteArrayResource;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
 import javax.servlet.http.HttpServletRequest;
+
+import static org.springframework.web.bind.annotation.RequestMethod.POST;
 
 @RestController
 @RequiredArgsConstructor
@@ -23,17 +28,26 @@ public class FileController {
         this.fileService = fileService;
     }
 
-    @PostMapping("/uploadFile")
-    public ResponseEntity<?> uploadFile(@ModelAttribute FileUploadRequest file) {
-        return fileService.uploadFile(file);
+    @RequestMapping(path = "/uploadFile", method = POST, consumes = {MediaType.MULTIPART_FORM_DATA_VALUE})
+    public ResponseEntity<?> uploadFile(@RequestParam("username") String username,
+                                        @RequestParam("fullPath") String fullPath,
+                                        @RequestPart("multipartFile") MultipartFile multipartFile) {
+        return fileService.uploadFile(new FileUploadRequest(username, fullPath, multipartFile));
     }
 
     @GetMapping("/downloadFile")
-    public ResponseEntity<?> downloadFile(@ModelAttribute FileDownloadRequest fileDownloadRequest) {
-        ByteArrayResource byteArray = fileService.downloadFile(fileDownloadRequest);
+    public ResponseEntity<?> downloadFile(@RequestParam("username") String username,
+                                          @RequestParam("fullPath") String fullPath) {
+
+        ByteArrayResource byteArray = fileService.downloadFile(new FileDownloadRequest(username, fullPath));
+
+        int index = fullPath.lastIndexOf('/');
+        if(index != -1)
+            fullPath = fullPath.substring(index);
 
         return ResponseEntity.ok()
-                .header("Content-Disposition", "attachment; filename=" + fileDownloadRequest.getFullPath())
+                .header(HttpHeaders.ACCESS_CONTROL_EXPOSE_HEADERS, "attachment; filename=" + fullPath)
+                .contentType(MediaType.APPLICATION_OCTET_STREAM)
                 .body(byteArray);
     }
 
@@ -62,7 +76,7 @@ public class FileController {
     }
 
     @PostMapping("/removeFromFavorite")
-    public ResponseEntity<?> removeFromFavorite(@ModelAttribute FileFavoriteRequest fileFavoriteRequest){
+    public ResponseEntity<?> removeFromFavorite(@RequestBody FileFavoriteRequest fileFavoriteRequest){
         return fileService.removeFromFavorites(fileFavoriteRequest);
     }
 

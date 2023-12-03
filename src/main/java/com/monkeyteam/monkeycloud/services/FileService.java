@@ -31,6 +31,8 @@ import java.util.Optional;
 public class FileService {
     private MinioClient minioClient;
 
+    private final int KB = 1024;
+    private final int MB = 1048576;
     private FileAndFolderUtil fileAndFolderUtil;
     private FolderRepository folderRepository;
     private FavoriteFileRepository favoriteFileRepository;
@@ -73,7 +75,14 @@ public class FileService {
         results.forEach(result -> {
             try {
                 Item item = result.get();
-                String size = Integer.toString((int)item.size() / 1024) + "kb";
+
+                Long size = item.size();//размер в байтах
+                String postfix = "bytes";
+                if(size >= KB && size < MB) {size /= KB; postfix = "kb";}
+                else if(size >= MB) {size /= MB; postfix = "mb";}
+
+                Boolean isFavorite = fileAndFolderUtil.checkFavorite(item, username);
+
                 String[] newNames = fileAndFolderUtil.getCorrectNamesForItem(item, folder);
                 MinioDto object = new MinioDto(
                         username,
@@ -81,8 +90,8 @@ public class FileService {
                         item.objectName(),
                         newNames[0],
                         newNames[1].equals("") ? username : username + "/" + newNames[1],
-                        size,
-                        false,
+                        Long.toString(size) + " " + postfix,
+                        isFavorite,
                         null);
                 files.add(object);
             } catch (Exception e) {
@@ -158,10 +167,15 @@ public class FileService {
     }
 
     public ResponseEntity<?> addToFavoriteFile(FileFavoriteRequest fileFavoriteRequest) {
-        User user = userRepository.findByUsername(fileFavoriteRequest.getUsername()).get();
+        Optional<User> userOptional = userRepository.findByUsername(fileFavoriteRequest.getUsername());
         FavoriteFile favoriteFile = new FavoriteFile();
+        if (userOptional.isEmpty()) {
+            return new ResponseEntity<>(new AppError(HttpStatus.BAD_REQUEST.value(), "Ошибка при нахождении пользователя"), HttpStatus.BAD_REQUEST);
+        }
+        User user = userOptional.get();
         String path = fileFavoriteRequest.getFullPath();
-        Optional<Folder> optional = folderRepository.findFolderByUserIdAndPath(user.getUser_id(), path);
+        int pathIndex = path.lastIndexOf('/');
+        Optional<Folder> optional = folderRepository.findFolderByUserIdAndPath(user.getUser_id(), pathIndex == -1 ? "" : path.substring(0, pathIndex));
         if (optional.isPresent()) {
             Folder folder = optional.get();
             favoriteFile.setFilePath(path);

@@ -30,4 +30,19 @@ public class SearchController {
         return searchService.privateSearchByDate(privateSearchByDate.getUsername(), privateSearchByDate.getDate());
     }
 
+    @GetMapping("/public-search-by-filename")
+    public ResponseEntity<?> publicSearchByFileName(@RequestBody PrivateSearchByDate privateSearchByDate){
+        return searchService.privateSearchByDate(privateSearchByDate.getUsername(), privateSearchByDate.getDate());
+    }
+
+    @GetMapping("/public-search-by-date")
+    public ResponseEntity<?> publicSearchByDate(@RequestBody PrivateSearchByDate privateSearchByDate){
+        return searchService.privateSearchByDate(privateSearchByDate.getUsername(), privateSearchByDate.getDate());
+    }
+
+    @GetMapping("/public-search-by-username")
+    public ResponseEntity<?> publicSearchByUsername(@RequestBody PrivateSearchByDate privateSearchByDate){
+        return searchService.privateSearchByDate(privateSearchByDate.getUsername(), privateSearchByDate.getDate());
+    }
+
 }

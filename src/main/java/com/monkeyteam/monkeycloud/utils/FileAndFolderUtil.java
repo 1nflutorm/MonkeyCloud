@@ -1,10 +1,7 @@
 package com.monkeyteam.monkeycloud.utils;
 
-import com.monkeyteam.monkeycloud.entities.Folder;
-import com.monkeyteam.monkeycloud.entities.InheritorFolder;
-import com.monkeyteam.monkeycloud.repositories.FolderRepository;
-import com.monkeyteam.monkeycloud.repositories.InheritorFoldersRepository;
-import com.monkeyteam.monkeycloud.repositories.UserRepository;
+import com.monkeyteam.monkeycloud.entities.*;
+import com.monkeyteam.monkeycloud.repositories.*;
 import io.minio.SnowballObject;
 import io.minio.messages.Item;
 import lombok.RequiredArgsConstructor;
@@ -21,25 +18,60 @@ public class FileAndFolderUtil {
     private UserRepository userRepository;
     private FolderRepository folderRepository;
     private InheritorFoldersRepository inheritorFoldersRepository;
+    private FavoriteFileRepository favoriteFileRepository;
+    private FavoriteFolderRepository favoriteFolderRepository;
+
     @Autowired
-    public void setUserRepository(UserRepository userRepository){
+    public void setUserRepository(UserRepository userRepository) {
         this.userRepository = userRepository;
     }
 
     @Autowired
-    public void setFolderRepository(FolderRepository folderRepository){
+    public void setFolderRepository(FolderRepository folderRepository) {
         this.folderRepository = folderRepository;
     }
 
     @Autowired
-    public void setInheritorFoldersRepository(InheritorFoldersRepository inheritorFoldersRepository){
+    public void setInheritorFoldersRepository(InheritorFoldersRepository inheritorFoldersRepository) {
         this.inheritorFoldersRepository = inheritorFoldersRepository;
     }
 
-    public String[] getCorrectNamesForItem(Item item, String folder){
+    @Autowired
+    public void setFavoriteFileRepository(FavoriteFileRepository favoriteFileRepository){
+        this.favoriteFileRepository = favoriteFileRepository;
+    }
+
+    @Autowired
+    public void setFavoriteFolderRepository(FavoriteFolderRepository favoriteFolderRepository){
+        this.favoriteFolderRepository = favoriteFolderRepository;
+    }
+
+    public Boolean checkFavorite(Item item, String username) {
+        Optional<User> optUser = userRepository.findByUsername(username);
+        if(!optUser.isPresent())
+            return false;
+
+        if (!item.isDir()) {
+            Optional<FavoriteFile> optionalFavoriteFile = favoriteFileRepository.findFileByUserIdAndFilePath(optUser.get().getUser_id(), item.objectName());
+            if(optionalFavoriteFile.isPresent())
+                return true;
+        } else {
+            Long userId = optUser.get().getUser_id();
+            Optional<Folder> optionalFolder = folderRepository.findFolderByUserIdAndPath(userId, item.objectName());
+            if(!optionalFolder.isPresent()) {
+                return false;
+            }
+            Optional<FavoriteFolder> optionalFavoriteFolder = favoriteFolderRepository.findByUserIdAndFolderId(userId, optionalFolder.get().getFolderId());
+            if(optionalFavoriteFolder.isPresent())
+                return true;
+        }
+        return false;
+    }
+
+    public String[] getCorrectNamesForItem(Item item, String folder) {
         String objectName = "";
         int lastSlash = item.objectName().lastIndexOf('/');
-        if(!item.isDir()) {//если не дитректория, то удаляем последний слэш
+        if (!item.isDir()) {//если не дитректория, то удаляем последний слэш
             objectName = item.objectName().substring(lastSlash + 1);
         } else {// если директория, то удаляем предпоследний и послдедний слэш
             objectName = item.objectName().substring(0, lastSlash);
@@ -47,12 +79,12 @@ public class FileAndFolderUtil {
         }
         lastSlash = folder.lastIndexOf('/');
         String folderName = "";
-        if(lastSlash == folder.length() - 1 && lastSlash != -1)
+        if (lastSlash == folder.length() - 1 && lastSlash != -1)
             folderName = folder.substring(0, lastSlash);
         return new String[]{objectName, folderName};
     }
 
-    public void addDirsToDataBaseFromUploadedFolder (List<SnowballObject> objectList, String username){
+    public void addDirsToDataBaseFromUploadedFolder(List<SnowballObject> objectList, String username) {
         /*
         1. найти id пользователя
         2. создать папку и сохранить ее в бд
@@ -60,10 +92,10 @@ public class FileAndFolderUtil {
         4. если родительская папка не создана - создать ее
         5. сохранить данные в таблицу "наследование папок"
          */
-        objectList.forEach(object-> {
+        objectList.forEach(object -> {
             Long userId = userRepository.findByUsername(username).get().getUser_id();
             String path = object.filename();
-            if(!path.endsWith("/"))
+            if (!path.endsWith("/"))
                 return;
 
             path = path.substring(0, path.length() - 1);
@@ -71,14 +103,14 @@ public class FileAndFolderUtil {
             Long folderId = folder.getFolderId();
 
             int lastSlash = path.lastIndexOf('/');
-            if(lastSlash == -1)
+            if (lastSlash == -1)
                 return;
 
             String parentFolderPath = path.substring(0, lastSlash);
 
             Optional<Folder> parentFolder = folderRepository.findFolderByUserIdAndPath(userId, parentFolderPath);
             Long parentFolderId;
-            if(!parentFolder.isPresent()) {
+            if (!parentFolder.isPresent()) {
                 String folderName = path.substring(parentFolderPath.lastIndexOf('/') + 1);
                 Folder newFolder = saveFolder(folderName, parentFolderPath, userId);//родительская папка
                 parentFolderId = newFolder.getFolderId();
@@ -92,7 +124,7 @@ public class FileAndFolderUtil {
         });
     }
 
-    private Folder saveFolder(String folderName, String folderPath, Long userId){
+    private Folder saveFolder(String folderName, String folderPath, Long userId) {
         Folder folder = new Folder();
         folder.setFolderAccess(1);
         folder.setFolderName(folderName);

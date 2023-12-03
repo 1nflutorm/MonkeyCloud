@@ -7,9 +7,10 @@ import org.springframework.data.repository.CrudRepository;
 import org.springframework.stereotype.Repository;
 
 import javax.transaction.Transactional;
+import java.util.Optional;
 
 @Repository
-public interface FavoriteFileRepository extends CrudRepository<FavoriteFile, Long> {
+public interface FavoriteFileRepository extends CrudRepository<FavoriteFile, FavoriteFile> {
     //Optional<User> findByUserId(Long userID);
 
 
@@ -17,4 +18,7 @@ public interface FavoriteFileRepository extends CrudRepository<FavoriteFile, Lon
     @Transactional
     @Query(value = "DELETE FROM favorite_files WHERE user_id = ? and file_path = ?", nativeQuery = true)
     public void deleteFromFavorite(Long id, String filePath);
+
+    @Query (value = "SELECT * FROM favorite_files WHERE user_id = ? and file_path = ?", nativeQuery = true)
+    public Optional<FavoriteFile> findFileByUserIdAndFilePath(Long id, String filePath);
 }
