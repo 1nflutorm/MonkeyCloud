@@ -24,7 +24,7 @@ public class User {
     @Column(name = "user_father_name ")
     private String last_name;
 
-    @ManyToMany
+    @ManyToMany(fetch = FetchType.EAGER)
     @JoinTable(
             name = "user_roles",
             joinColumns = @JoinColumn(name = "user_id"),

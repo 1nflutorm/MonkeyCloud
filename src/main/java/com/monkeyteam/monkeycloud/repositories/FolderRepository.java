@@ -8,6 +8,7 @@ import org.springframework.data.repository.CrudRepository;
 import org.springframework.stereotype.Repository;
 
 import javax.transaction.Transactional;
+import java.util.List;
 import java.util.Optional;
 
 @Repository
@@ -16,5 +17,8 @@ public interface FolderRepository extends CrudRepository<Folder, Long> {
 
     @Query(value = "SELECT * FROM folders WHERE user_id = ? and folder_path = ?", nativeQuery = true)
     Optional<Folder> findFolderByUserIdAndPath(Long user_id, String folderPath);
+
+    @Query(value = "SELECT * FROM Folder WHERE folderAccess = ?", nativeQuery = true)
+    List<Folder> findAllByFolderAccess(Integer accessValue);
 
 }

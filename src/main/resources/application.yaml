@@ -23,5 +23,9 @@ spring:
     url: http://localhost:9000
     accessKey: admin
     secretKey: password
+  servlet:
+    multipart:
+      max-file-size: 1GB
+      max-request-size: 1GB
 
 

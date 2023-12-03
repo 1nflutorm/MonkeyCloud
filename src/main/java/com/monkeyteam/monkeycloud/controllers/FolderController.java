@@ -1,8 +1,10 @@
 package com.monkeyteam.monkeycloud.controllers;
 
 import com.monkeyteam.monkeycloud.dtos.folderDtos.FolderDeleteRequest;
+import com.monkeyteam.monkeycloud.dtos.folderDtos.FolderFavoriteRequest;
 import com.monkeyteam.monkeycloud.dtos.folderDtos.FolderRenameRequest;
 import com.monkeyteam.monkeycloud.dtos.folderDtos.FolderUploadRequest;
+import com.monkeyteam.monkeycloud.repositories.FavoriteFolderRepository;
 import com.monkeyteam.monkeycloud.services.FolderService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
@@ -32,4 +34,13 @@ public class FolderController {
         return folderService.renameFolder(file);
     }
 
+    @PostMapping("/addFolderToFavorite")
+    public ResponseEntity<?> addFolderToFavorite(@RequestBody FolderFavoriteRequest folderFavoriteRequest){
+        return folderService.addFolderToFavorite(folderFavoriteRequest);
+    }
+
+    @PostMapping("/removeFolderFromFavorite")
+    public ResponseEntity<?> removeFolderFromFavorite(@RequestBody FolderFavoriteRequest folderFavoriteRequest){
+        return folderService.removeFolderFromFavorite(folderFavoriteRequest);
+    }
 }
