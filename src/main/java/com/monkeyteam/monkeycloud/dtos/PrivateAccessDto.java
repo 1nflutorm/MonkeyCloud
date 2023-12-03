@@ -10,5 +10,5 @@ import lombok.NoArgsConstructor;
 public class PrivateAccessDto {
     private String owner;
     private String customer;
-    private String folder;
+    private String fullPath;
 }
