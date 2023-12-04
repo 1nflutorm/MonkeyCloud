@@ -6,15 +6,14 @@ import com.monkeyteam.monkeycloud.services.FileService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.ByteArrayResource;
-import org.springframework.http.HttpHeaders;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.MediaType;
-import org.springframework.http.ResponseEntity;
+import org.springframework.http.*;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
 import javax.servlet.http.HttpServletRequest;
+
+import java.nio.charset.StandardCharsets;
 
 import static org.springframework.web.bind.annotation.RequestMethod.POST;
 
@@ -35,7 +34,7 @@ public class FileController {
         return fileService.uploadFile(new FileUploadRequest(username, fullPath, multipartFile));
     }
 
-    @GetMapping("/downloadFile")
+    @GetMapping(value = "/downloadFile", produces = MediaType.APPLICATION_OCTET_STREAM_VALUE)
     public ResponseEntity<?> downloadFile(@RequestParam("username") String username,
                                           @RequestParam("fullPath") String fullPath) {
 
@@ -45,9 +44,15 @@ public class FileController {
         if(index != -1)
             fullPath = fullPath.substring(index);
 
+        index = fullPath.lastIndexOf("/");
+        String filename = index == -1 ? fullPath : fullPath.substring(index);
+        HttpHeaders responseHeaders = new HttpHeaders();
+        responseHeaders.setContentDisposition(ContentDisposition.inline()
+                .filename(filename, StandardCharsets.UTF_8)
+                .build());
+
         return ResponseEntity.ok()
-                .header(HttpHeaders.ACCESS_CONTROL_EXPOSE_HEADERS, "attachment; filename=" + fullPath)
-                .contentType(MediaType.APPLICATION_OCTET_STREAM)
+                .headers(responseHeaders)
                 .body(byteArray);
     }
 
