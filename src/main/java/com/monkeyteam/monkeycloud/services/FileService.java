@@ -199,10 +199,6 @@ public class FileService {
                 return new ResponseEntity<>(new AppError(HttpStatus.BAD_REQUEST.value(), "Ошибка при переименовании файла"), HttpStatus.BAD_REQUEST);
 
             Long userId = optionalUser.get().getUser_id();
-            Optional<Folder> optionalFolder = folderRepository.findFolderByUserIdAndPath(userId, fileRenameRequest.getFullPath());
-            if(optionalFolder.isEmpty())
-                return new ResponseEntity<>(new AppError(HttpStatus.BAD_REQUEST.value(), "Ошибка при переименовании файла"), HttpStatus.BAD_REQUEST);
-            Long folderId = optionalFolder.get().getFolderId();
             String newPath = fileRenameRequest.getFullPath() + fileRenameRequest.getNewName();
             String oldPath = fileRenameRequest.getFullPath() + fileRenameRequest.getOldName();
             minioClient.copyObject(CopyObjectArgs
@@ -218,7 +214,11 @@ public class FileService {
                             .build())
                     .build());
             deleteFile(new FileDeleteRequest(fileRenameRequest.getUsername(), fileRenameRequest.getFullPath() + "/" + fileRenameRequest.getOldName()));
-            favoriteFileRepository.renameInFavoriteFiles(newPath, userId, folderId, oldPath);
+            Optional<Folder> optionalFolder = folderRepository.findFolderByUserIdAndPath(userId, fileRenameRequest.getFullPath());
+            if(optionalFolder.isPresent()){
+                Long folderId = optionalFolder.get().getFolderId();
+                favoriteFileRepository.renameInFavoriteFiles(newPath, userId, folderId, oldPath);
+            }
         } catch (Exception e) {
             return new ResponseEntity<>(new AppError(HttpStatus.BAD_REQUEST.value(), "Ошибка при переименовании файла"), HttpStatus.BAD_REQUEST);
         }
