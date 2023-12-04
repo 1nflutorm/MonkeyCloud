@@ -7,7 +7,8 @@ import lombok.NoArgsConstructor;
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
-public class SessionControl {
-    String username;
-    boolean isActive;
+public class GrantAccessDto {
+    private Long telegramID;
+    private Long customerID;
+    private Long folderID;
 }

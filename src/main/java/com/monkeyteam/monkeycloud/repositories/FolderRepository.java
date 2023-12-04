@@ -8,6 +8,7 @@ import org.springframework.data.repository.CrudRepository;
 import org.springframework.stereotype.Repository;
 
 import javax.transaction.Transactional;
+import java.sql.SQLException;
 import java.util.List;
 import java.util.Optional;
 
@@ -21,4 +22,8 @@ public interface FolderRepository extends CrudRepository<Folder, Long> {
     @Query(value = "SELECT * FROM Folder WHERE folderAccess = ?", nativeQuery = true)
     List<Folder> findAllByFolderAccess(Integer accessValue);
 
+    @Modifying
+    @Transactional
+    @Query(value = "UPDATE folders SET folder_access = ? WHERE folder_id = ?", nativeQuery = true)
+    void setFolderAccess(int folderAccess, Long folderId) throws SQLException;
 }

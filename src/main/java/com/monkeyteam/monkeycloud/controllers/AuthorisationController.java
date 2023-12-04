@@ -1,10 +1,12 @@
 package com.monkeyteam.monkeycloud.controllers;
 
+import com.monkeyteam.monkeycloud.dtos.TelegramDto;
 import com.monkeyteam.monkeycloud.dtos.jwtDtos.JwtRequest;
 import com.monkeyteam.monkeycloud.dtos.authDtos.RegistrationUserDto;
 import com.monkeyteam.monkeycloud.entities.RefreshToken;
 import com.monkeyteam.monkeycloud.exeptions.AppError;
 import com.monkeyteam.monkeycloud.exeptions.RefreshTokenExeption;
+import com.monkeyteam.monkeycloud.repositories.TelegramRepository;
 import com.monkeyteam.monkeycloud.services.AuthService;
 import com.monkeyteam.monkeycloud.services.RefreshTokenService;
 import lombok.RequiredArgsConstructor;
@@ -52,5 +54,13 @@ public class AuthorisationController {
             return new ResponseEntity<>(new AppError(HttpStatus.REQUEST_TIMEOUT.value(), e.getMessage()), HttpStatus.REQUEST_TIMEOUT);
         }
         return authService.createTokens(refreshTokenService.getUsername(refreshToken.getUser_id()));
+    }
+
+    @PostMapping("/addTelegramId")
+    public ResponseEntity<?> addTelegramId(@RequestBody TelegramDto telegramDto){
+        if(authService.notifiesTheBot(telegramDto).getStatusCode().value() != 200){
+            return new ResponseEntity<>(new AppError(HttpStatus.BAD_REQUEST.value(), "Ошибка добавлния telegramId"), HttpStatus.BAD_REQUEST);
+        }
+        return authService.addTelegramId(telegramDto);
     }
 }

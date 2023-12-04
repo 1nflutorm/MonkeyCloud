@@ -175,7 +175,7 @@ public class FileService {
         User user = userOptional.get();
         String path = fileFavoriteRequest.getFullPath();
         int pathIndex = path.lastIndexOf('/');
-        Optional<Folder> optional = folderRepository.findFolderByUserIdAndPath(user.getUser_id(), pathIndex == -1 ? "" : path.substring(0, pathIndex));
+        Optional<Folder> optional = folderRepository.findFolderByUserIdAndPath(user.getUser_id(), pathIndex == -1 ? "" : path.substring(0, pathIndex) + "/");
         if (optional.isPresent()) {
             Folder folder = optional.get();
             favoriteFile.setFilePath(path);

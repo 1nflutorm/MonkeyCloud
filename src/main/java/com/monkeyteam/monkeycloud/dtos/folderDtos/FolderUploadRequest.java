@@ -11,5 +11,6 @@ import java.util.List;
 @AllArgsConstructor
 public class FolderUploadRequest {
     private List<MultipartFile> files;
+    private String fullPath;
     private String username;
 }
