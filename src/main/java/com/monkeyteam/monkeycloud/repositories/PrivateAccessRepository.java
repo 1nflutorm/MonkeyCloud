@@ -5,5 +5,6 @@ import org.springframework.data.repository.CrudRepository;
 import org.springframework.stereotype.Repository;
 
 @Repository
-public interface PrivateAccessRepositiry extends CrudRepository<PrivateAccessEntity, PrivateAccessEntity> {
+public interface PrivateAccessRepository extends CrudRepository<PrivateAccessEntity, PrivateAccessEntity> {
+
 }

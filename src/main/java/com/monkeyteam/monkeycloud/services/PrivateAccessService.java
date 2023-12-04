@@ -1,21 +1,23 @@
 package com.monkeyteam.monkeycloud.services;
 
+import com.monkeyteam.monkeycloud.dtos.GrantAccessDto;
 import com.monkeyteam.monkeycloud.dtos.PrivateAccessDto;
 import com.monkeyteam.monkeycloud.entities.Folder;
+import com.monkeyteam.monkeycloud.entities.PrivateAccessEntity;
+import com.monkeyteam.monkeycloud.entities.TelegramUser;
 import com.monkeyteam.monkeycloud.entities.User;
 import com.monkeyteam.monkeycloud.exeptions.AppError;
 import com.monkeyteam.monkeycloud.repositories.FolderRepository;
+import com.monkeyteam.monkeycloud.repositories.PrivateAccessRepository;
+import com.monkeyteam.monkeycloud.repositories.TelegramRepository;
 import com.monkeyteam.monkeycloud.repositories.UserRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.http.*;
 import org.springframework.stereotype.Service;
-import org.springframework.web.client.RestTemplate;
 import org.springframework.web.util.UriComponentsBuilder;
 
-import java.util.HashMap;
-import java.util.Map;
+import java.sql.SQLException;
 import java.util.Optional;
 
 @Service
@@ -24,6 +26,10 @@ public class PrivateAccessService {
 
     private UserRepository userRepository;
     private FolderRepository folderRepository;
+    private PrivateAccessRepository privateAccessRepository;
+    private TelegramRepository telegramRepository;
+
+    private BotService botService;
 
     @Autowired
     public void setUserRepository(UserRepository userRepository) {
@@ -35,45 +41,64 @@ public class PrivateAccessService {
         this.folderRepository = folderRepository;
     }
 
+    @Autowired
+    public void setPrivateAccessRepository(PrivateAccessRepository privateAccessRepository){
+        this.privateAccessRepository = privateAccessRepository;
+    }
+    @Autowired
+    public void setBotService(BotService botService){
+        this.botService = botService;
+    }
+
+    @Autowired
+    public void setTelegramRepository(TelegramRepository telegramRepository){
+        this.telegramRepository = telegramRepository;
+    }
     public ResponseEntity<?> getPrivateAccess(PrivateAccessDto privateAccessDto) {
-        /*
-         * TODO: найти tg_id пользователя в БД
-         *  */
-        String botUrl = "url";
+        String botUrl = "http://localhost:7070/get-access";
         String customerUsername = privateAccessDto.getCustomer();
         String ownerUsername = privateAccessDto.getOwner();
         String fullPath = privateAccessDto.getFullPath();
+
         Optional<User> optionalCustomer = userRepository.findByUsername(customerUsername);
         Optional<User> optionalOwner = userRepository.findByUsername(ownerUsername);
         if (optionalCustomer.isEmpty() || optionalOwner.isEmpty())
             return new ResponseEntity<>(new AppError(HttpStatus.BAD_REQUEST.value(), "такого пользователя не существует"), HttpStatus.BAD_REQUEST);
-        Long userId = optionalCustomer.get().getUser_id();
+        Long customerId = optionalCustomer.get().getUser_id();
+        Long ownerId = optionalOwner.get().getUser_id();
+
+        Optional<TelegramUser> optionalTelegramUser = telegramRepository.findByUserId(ownerId);
+        if(optionalTelegramUser.isEmpty()){
+            return new ResponseEntity<>(new AppError(HttpStatus.BAD_REQUEST.value(), "такого пользователя телеграмма не существует"), HttpStatus.BAD_REQUEST);
+        }
+        Long tgId = optionalTelegramUser.get().getChatId();
+
         Optional<Folder> optionalFolder = folderRepository.findFolderByUserIdAndPath(optionalOwner.get().getUser_id(), fullPath);
         if (optionalFolder.isEmpty())
             return new ResponseEntity<>(new AppError(HttpStatus.BAD_REQUEST.value(), "такой папки не существует"), HttpStatus.BAD_REQUEST);
         Long folderId = optionalFolder.get().getFolderId();
 
         UriComponentsBuilder builder = UriComponentsBuilder.fromHttpUrl(botUrl)
-                .queryParam("telegramID", Long.toString(10000000L))
-                .queryParam("userID", Long.toString(userId))
-                .queryParam("nameUser", customerUsername)
+                .queryParam("telegramID", Long.toString(tgId))
+                .queryParam("userID", Long.toString(customerId))
+                .queryParam("username", customerUsername)
                 .queryParam("folderID", Long.toString(folderId))
                 .queryParam("folderName", fullPath);
 
-        sendToBot(builder);
+        //ResponseEntity<?> response = botService.sendGetRequestToBot(builder);
 
-        return ResponseEntity.ok("запрос отправлен");
+        return botService.sendGetRequestToBot(builder);
     }
-
-    public void sendToBot(UriComponentsBuilder builder) {
-        RestTemplate restTemplate = new RestTemplate();
-
-        HttpHeaders headers = new HttpHeaders();
-        headers.set("Content-Type", "хуй знает что в заголовках");
-        //TODO: правльные заголовки
-        HttpEntity entity = new HttpEntity(headers);
-
-        ResponseEntity<?> response = restTemplate.exchange(builder.toUriString(), HttpMethod.GET, entity, String.class);
+    public ResponseEntity<?> grantAccess(GrantAccessDto grantAccessDto) {
+        PrivateAccessEntity privateAccessEntity = new PrivateAccessEntity();
+        privateAccessEntity.setFolderId(grantAccessDto.getFolderID());
+        privateAccessEntity.setUserId(grantAccessDto.getCustomerID());
+        try {
+            folderRepository.setFolderAccess(2, grantAccessDto.getFolderID());
+            privateAccessRepository.save(privateAccessEntity);
+        } catch (SQLException e) {
+            return new ResponseEntity<>(new AppError(HttpStatus.BAD_REQUEST.value(), "Ошибка открытия доступа"), HttpStatus.BAD_REQUEST);
+        }
+        return ResponseEntity.ok("Доступ открыт");
     }
-
 }

@@ -1,5 +1,6 @@
 package com.monkeyteam.monkeycloud.controllers;
 
+import com.monkeyteam.monkeycloud.dtos.GrantAccessDto;
 import com.monkeyteam.monkeycloud.dtos.PrivateAccessDto;
 import com.monkeyteam.monkeycloud.services.PrivateAccessService;
 import lombok.RequiredArgsConstructor;
@@ -24,4 +25,10 @@ public class PrivateAccessController {
     public ResponseEntity<?> getPrivateAccess(@RequestBody PrivateAccessDto privateAccessDto){
         return privateAccessService.getPrivateAccess(privateAccessDto);
     }
+
+    @PostMapping("/grant-access")
+    public ResponseEntity<?> grantAccess(@RequestBody GrantAccessDto grantAccessDto){
+        return privateAccessService.grantAccess(grantAccessDto);
+    }
+
 }

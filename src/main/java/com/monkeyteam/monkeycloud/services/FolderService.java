@@ -84,7 +84,7 @@ public class FolderService {
                 continue;
             }
             SnowballObject snowballObject = new SnowballObject(
-                    folderUploadRequest.getUsername() + file.getOriginalFilename(),
+                    folderUploadRequest.getFullPath() + file.getOriginalFilename(),
                     file.getInputStream(),
                     file.getSize(),
                     null);

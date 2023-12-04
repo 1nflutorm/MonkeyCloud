@@ -4,22 +4,28 @@ import com.monkeyteam.monkeycloud.dtos.folderDtos.FolderDeleteRequest;
 import com.monkeyteam.monkeycloud.dtos.folderDtos.FolderFavoriteRequest;
 import com.monkeyteam.monkeycloud.dtos.folderDtos.FolderRenameRequest;
 import com.monkeyteam.monkeycloud.dtos.folderDtos.FolderUploadRequest;
-import com.monkeyteam.monkeycloud.repositories.FavoriteFolderRepository;
 import com.monkeyteam.monkeycloud.services.FolderService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
-import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
 import javax.servlet.http.HttpServletRequest;
+import java.util.List;
+
+import static org.springframework.web.bind.annotation.RequestMethod.POST;
 
 @RestController
 @RequiredArgsConstructor
 public class FolderController {
     private final FolderService folderService;
-    @PostMapping("/uploadFolder")
-    public ResponseEntity<?> uploadFile(@ModelAttribute FolderUploadRequest file) {
-        return folderService.uploadFolder(file);
+
+    @RequestMapping(path = "/uploadFolder", method = POST, consumes = {MediaType.MULTIPART_FORM_DATA_VALUE})
+    public ResponseEntity<?> uploadFile(@RequestParam("username") String username,
+                                        @RequestParam("fullPath") String fullPath,
+                                        @RequestPart("multipartFile") List<MultipartFile> multipartFiles) {
+        return folderService.uploadFolder(new FolderUploadRequest(multipartFiles, fullPath, username));
     }
 
     @DeleteMapping("/deleteFolder")
