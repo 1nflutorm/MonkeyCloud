@@ -115,6 +115,10 @@ public class FolderService {
         String fullPath = folderRenameRequest.getFullPath();
         String oldName = folderRenameRequest.getOldName();
         String newName = folderRenameRequest.getNewName();
+        if(newName.startsWith(oldName)){
+            return new ResponseEntity<>(new AppError(HttpStatus.BAD_REQUEST.value(), "Новое имя папки не может начинаться старым названием"), HttpStatus.BAD_REQUEST);
+        }
+
         try {
             files = fileService.getAllUserFiles(username, fullPath + oldName);
         } catch (Exception e) {
@@ -162,7 +166,7 @@ public class FolderService {
     public ResponseEntity<?> deleteFolder(FolderDeleteRequest folderDeleteRequest) {
         List<MinioDto> files = null;
         try {
-            files = fileService.getAllUserFiles(folderDeleteRequest.getUsername(), folderDeleteRequest.getFullPath());
+            files = fileService.getAllUserFiles(folderDeleteRequest.getUsername(), folderDeleteRequest.getFullPath());//ОШИБКА
         } catch (Exception e) {
             e.printStackTrace();
         }
