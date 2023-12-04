@@ -157,9 +157,7 @@ public class FolderService {
         Optional<Folder> optionalFolder = folderRepository.findFolderByUserIdAndPath(optionalUser.get().getUser_id(), folderPath);
         if(optionalFolder.isEmpty())
             return new ResponseEntity<>(new AppError(HttpStatus.BAD_REQUEST.value(), "Ошибка при переименовании папки (папки не существует)"), HttpStatus.BAD_REQUEST);
-        folderRepository.renameInFolders(fullPath + newName + "/",
-                newName,
-                optionalFolder.get().getFolderId());
+        folderRepository.renameInFolders(fullPath + newName + "/", newName, optionalFolder.get().getFolderId());
         return ResponseEntity.ok("Папка переименовалась корректно");
     }
 
