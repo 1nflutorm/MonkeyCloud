@@ -111,26 +111,30 @@ public class FolderService {
 
     public ResponseEntity<?> renameFolder(FolderRenameRequest folderRenameRequest) {
         List<MinioDto> files = null;
+        String username = folderRenameRequest.getUsername();
+        String fullPath = folderRenameRequest.getFullPath();
+        String oldName = folderRenameRequest.getOldName();
+        String newName = folderRenameRequest.getNewName();
         try {
-            files = fileService.getAllUserFiles(folderRenameRequest.getUsername(), folderRenameRequest.getFullPath() + folderRenameRequest.getOldName());
+            files = fileService.getAllUserFiles(username, fullPath + oldName);
         } catch (Exception e) {
             return new ResponseEntity<>(new AppError(HttpStatus.BAD_REQUEST.value(), "Ошибка при переименовании папки"), HttpStatus.BAD_REQUEST);
         }
         for (MinioDto file : files) {
             try {
-                int start = (folderRenameRequest.getFullPath() + folderRenameRequest.getOldName()).length();
+                int start = (fullPath + oldName).length();
                 String path = file.getPath();
                 path = path.substring(start);
-                path = folderRenameRequest.getFullPath() + folderRenameRequest.getNewName() + path;
+                path = fullPath + newName + path;
 
-                String first = folderRenameRequest.getFullPath() + folderRenameRequest.getNewName() + "/" + file.getPath();
+                String first = fullPath + newName + "/" + file.getPath();
                 String sec = file.getPath();
                 minioClient.copyObject(CopyObjectArgs
                         .builder()
-                        .bucket(folderRenameRequest.getUsername())
+                        .bucket(username)
                         .object(path)
                         .source(CopySource.builder()
-                                .bucket(folderRenameRequest.getUsername())
+                                .bucket(username)
                                 .object(file.getPath())
                                 .build())
                         .build());
@@ -138,8 +142,20 @@ public class FolderService {
                 return new ResponseEntity<>(new AppError(HttpStatus.BAD_REQUEST.value(), "Ошибка при переименовании папки"), HttpStatus.BAD_REQUEST);
             }
         }
-        FolderDeleteRequest folderDeleteRequest = new FolderDeleteRequest(folderRenameRequest.getUsername(), folderRenameRequest.getFullPath() + folderRenameRequest.getOldName());
+        FolderDeleteRequest folderDeleteRequest = new FolderDeleteRequest(username, fullPath + oldName);
         deleteFolder(folderDeleteRequest);
+        Optional<User> optionalUser = userRepository.findByUsername(username);
+
+        String folderPath = fullPath + oldName + "/";
+
+        if(optionalUser.isEmpty())
+            return new ResponseEntity<>(new AppError(HttpStatus.BAD_REQUEST.value(), "Ошибка при переименовании папки (пользователя не существует)"), HttpStatus.BAD_REQUEST);
+        Optional<Folder> optionalFolder = folderRepository.findFolderByUserIdAndPath(optionalUser.get().getUser_id(), folderPath);
+        if(optionalFolder.isEmpty())
+            return new ResponseEntity<>(new AppError(HttpStatus.BAD_REQUEST.value(), "Ошибка при переименовании папки (папки не существует)"), HttpStatus.BAD_REQUEST);
+        folderRepository.renameInFolders(fullPath + newName + "/",
+                newName,
+                optionalFolder.get().getFolderId());
         return ResponseEntity.ok("Папка переименовалась корректно");
     }
 

@@ -26,4 +26,9 @@ public interface FolderRepository extends CrudRepository<Folder, Long> {
     @Transactional
     @Query(value = "UPDATE folders SET folder_access = ? WHERE folder_id = ?", nativeQuery = true)
     void setFolderAccess(int folderAccess, Long folderId) throws SQLException;
+
+    @Modifying
+    @Transactional
+    @Query(value = "UPDATE folders SET folder_path = ?, folder_name = ? WHERE folder_id = ?;", nativeQuery = true)
+    void renameInFolders(String fullPath, String folderName, Long folderId);
 }
