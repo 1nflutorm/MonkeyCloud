@@ -21,4 +21,9 @@ public interface FavoriteFileRepository extends CrudRepository<FavoriteFile, Fav
 
     @Query (value = "SELECT * FROM favorite_files WHERE user_id = ? and file_path = ?", nativeQuery = true)
     public Optional<FavoriteFile> findFileByUserIdAndFilePath(Long id, String filePath);
+
+    @Transactional
+    @Modifying
+    @Query(value = "UPDATE favorite_files SET file_path = ? WHERE user_id = ? AND folder_id = ? AND file_path = ?", nativeQuery = true)
+    void renameInFavoriteFiles(String newName, Long userId, Long folderId, String oldName);
 }

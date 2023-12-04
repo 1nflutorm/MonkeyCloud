@@ -37,7 +37,6 @@ public class FileService {
     private FolderRepository folderRepository;
     private FavoriteFileRepository favoriteFileRepository;
     private UserRepository userRepository;
-
     @Autowired
     public void setUserRepository(UserRepository userRepository) {
         this.userRepository = userRepository;
@@ -195,6 +194,17 @@ public class FileService {
 
     public ResponseEntity<?> renameFile(FileRenameRequest fileRenameRequest) {
         try {
+            Optional<User> optionalUser = userRepository.findByUsername(fileRenameRequest.getUsername());
+            if(optionalUser.isEmpty())
+                return new ResponseEntity<>(new AppError(HttpStatus.BAD_REQUEST.value(), "Ошибка при переименовании файла"), HttpStatus.BAD_REQUEST);
+
+            Long userId = optionalUser.get().getUser_id();
+            Optional<Folder> optionalFolder = folderRepository.findFolderByUserIdAndPath(userId, fileRenameRequest.getFullPath());
+            if(optionalFolder.isEmpty())
+                return new ResponseEntity<>(new AppError(HttpStatus.BAD_REQUEST.value(), "Ошибка при переименовании файла"), HttpStatus.BAD_REQUEST);
+            Long folderId = optionalFolder.get().getFolderId();
+            String newPath = fileRenameRequest.getFullPath() + fileRenameRequest.getNewName();
+            String oldPath = fileRenameRequest.getFullPath() + fileRenameRequest.getOldName();
             minioClient.copyObject(CopyObjectArgs
                     .builder()
                     .bucket(fileRenameRequest.getUsername())
@@ -208,10 +218,32 @@ public class FileService {
                             .build())
                     .build());
             deleteFile(new FileDeleteRequest(fileRenameRequest.getUsername(), fileRenameRequest.getFullPath() + "/" + fileRenameRequest.getOldName()));
+            favoriteFileRepository.renameInFavoriteFiles(newPath, userId, folderId, oldPath);
         } catch (Exception e) {
             return new ResponseEntity<>(new AppError(HttpStatus.BAD_REQUEST.value(), "Ошибка при переименовании файла"), HttpStatus.BAD_REQUEST);
         }
         return ResponseEntity.ok("Файл переименован успешно");
     }
+
+//    public ResponseEntity<?> renameFile(FileRenameRequest fileRenameRequest) {
+//        try {
+//            minioClient.copyObject(CopyObjectArgs
+//                    .builder()
+//                    .bucket(fileRenameRequest.getUsername())
+//                    .object(fileRenameRequest.getFullPath() + fileRenameRequest.getNewName())
+//                    .source(CopySource
+//                            .builder()
+//                            .bucket(fileRenameRequest.getUsername())
+//                            .object(fileRenameRequest.getFullPath() + fileRenameRequest.getOldName()) //путь передается без названия бакета и названия файла
+//                            //например folder/secFolder/
+//                            //при этом имя бакета 1nflutrom, а название файла png.png
+//                            .build())
+//                    .build());
+//            deleteFile(new FileDeleteRequest(fileRenameRequest.getUsername(), fileRenameRequest.getFullPath() + fileRenameRequest.getOldName()));
+//        } catch (Exception e) {
+//            return new ResponseEntity<>(new AppError(HttpStatus.BAD_REQUEST.value(), "Ошибка при переименовании файла"), HttpStatus.BAD_REQUEST);
+//        }
+//        return ResponseEntity.ok("Файл переименован успешно");
+//    }
 
 }
