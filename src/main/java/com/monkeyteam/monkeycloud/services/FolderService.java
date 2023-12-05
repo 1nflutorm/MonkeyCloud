@@ -115,12 +115,9 @@ public class FolderService {
         String fullPath = folderRenameRequest.getFullPath();
         String oldName = folderRenameRequest.getOldName();
         String newName = folderRenameRequest.getNewName();
-        if(newName.startsWith(oldName)){
-            return new ResponseEntity<>(new AppError(HttpStatus.BAD_REQUEST.value(), "Новое имя папки не может начинаться старым названием"), HttpStatus.BAD_REQUEST);
-        }
-
+        String folderPath = fullPath + oldName + "/";
         try {
-            files = fileService.getAllUserFiles(username, fullPath + oldName);
+            files = fileService.getAllUserFiles(username, folderPath);
         } catch (Exception e) {
             return new ResponseEntity<>(new AppError(HttpStatus.BAD_REQUEST.value(), "Ошибка при переименовании папки"), HttpStatus.BAD_REQUEST);
         }
@@ -146,11 +143,9 @@ public class FolderService {
                 return new ResponseEntity<>(new AppError(HttpStatus.BAD_REQUEST.value(), "Ошибка при переименовании папки"), HttpStatus.BAD_REQUEST);
             }
         }
-        FolderDeleteRequest folderDeleteRequest = new FolderDeleteRequest(username, fullPath + oldName);
+        FolderDeleteRequest folderDeleteRequest = new FolderDeleteRequest(username, folderPath);
         deleteFolder(folderDeleteRequest);
         Optional<User> optionalUser = userRepository.findByUsername(username);
-
-        String folderPath = fullPath + oldName + "/";
 
         if(optionalUser.isEmpty())
             return new ResponseEntity<>(new AppError(HttpStatus.BAD_REQUEST.value(), "Ошибка при переименовании папки (пользователя не существует)"), HttpStatus.BAD_REQUEST);
@@ -164,7 +159,7 @@ public class FolderService {
     public ResponseEntity<?> deleteFolder(FolderDeleteRequest folderDeleteRequest) {
         List<MinioDto> files = null;
         try {
-            files = fileService.getAllUserFiles(folderDeleteRequest.getUsername(), folderDeleteRequest.getFullPath());//ОШИБКА
+            files = fileService.getAllUserFiles(folderDeleteRequest.getUsername(), folderDeleteRequest.getFullPath());
         } catch (Exception e) {
             e.printStackTrace();
         }
