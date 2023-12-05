@@ -143,16 +143,17 @@ public class FolderService {
                 return new ResponseEntity<>(new AppError(HttpStatus.BAD_REQUEST.value(), "Ошибка при переименовании папки"), HttpStatus.BAD_REQUEST);
             }
         }
-        FolderDeleteRequest folderDeleteRequest = new FolderDeleteRequest(username, folderPath);
-        deleteFolder(folderDeleteRequest);
         Optional<User> optionalUser = userRepository.findByUsername(username);
-
         if(optionalUser.isEmpty())
             return new ResponseEntity<>(new AppError(HttpStatus.BAD_REQUEST.value(), "Ошибка при переименовании папки (пользователя не существует)"), HttpStatus.BAD_REQUEST);
         Optional<Folder> optionalFolder = folderRepository.findFolderByUserIdAndPath(optionalUser.get().getUser_id(), folderPath);
         if(optionalFolder.isEmpty())
             return new ResponseEntity<>(new AppError(HttpStatus.BAD_REQUEST.value(), "Ошибка при переименовании папки (папки не существует)"), HttpStatus.BAD_REQUEST);
         folderRepository.renameInFolders(fullPath + newName + "/", newName, optionalFolder.get().getFolderId());
+
+        FolderDeleteRequest folderDeleteRequest = new FolderDeleteRequest(username, folderPath);
+        deleteFolder(folderDeleteRequest);
+
         return ResponseEntity.ok("Папка переименовалась корректно");
     }
 
@@ -163,6 +164,8 @@ public class FolderService {
         } catch (Exception e) {
             e.printStackTrace();
         }
+
+        Optional<User> optionalUser = userRepository.findByUsername(folderDeleteRequest.getUsername());
 
         List<DeleteObject> objects = convertToDeleteObjects(files);
 
@@ -178,6 +181,9 @@ public class FolderService {
                 e.printStackTrace();
             }
         });
+        Optional<Folder> optionalFolder = folderRepository.findFolderByUserIdAndPath(optionalUser.get().getUser_id(), folderDeleteRequest.getFullPath());
+        if(optionalFolder.isPresent())
+            folderRepository.deleteFolderById(optionalFolder.get().getFolderId());
         return ResponseEntity.ok("папка удалена");
     }
 
