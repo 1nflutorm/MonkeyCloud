@@ -92,36 +92,40 @@ public class FileAndFolderUtil {
         4. если родительская папка не создана - создать ее
         5. сохранить данные в таблицу "наследование папок"
          */
-        objectList.forEach(object -> {
+        for(SnowballObject object : objectList){
             Long userId = userRepository.findByUsername(username).get().getUser_id();
-            String path = object.filename();
-            if (!path.endsWith("/"))
-                return;
-
-            path = path.substring(0, path.length() - 1);
-            Folder folder = saveFolder(object.name(), path, userId);//загружаемая папка
-            Long folderId = folder.getFolderId();
-
+            String path = object.name();//достаем путь к файлу
             int lastSlash = path.lastIndexOf('/');
-            if (lastSlash == -1)
-                return;
+            String folderPath = path.substring(0, lastSlash + 1);// достаем полный путь до папки
+            path = path.substring(0, lastSlash);
+            lastSlash = path.lastIndexOf('/');
+            String folderName = path.substring(lastSlash + 1);// достаем имя папки
 
-            String parentFolderPath = path.substring(0, lastSlash);
+            Optional<Folder> foundFolder = folderRepository.findFolderByUserIdAndPath(userId, folderPath);
+            if(foundFolder.isEmpty())
+                saveFolder(folderName, folderPath, userId);
 
-            Optional<Folder> parentFolder = folderRepository.findFolderByUserIdAndPath(userId, parentFolderPath);
-            Long parentFolderId;
-            if (!parentFolder.isPresent()) {
-                String folderName = path.substring(parentFolderPath.lastIndexOf('/') + 1);
-                Folder newFolder = saveFolder(folderName, parentFolderPath, userId);//родительская папка
-                parentFolderId = newFolder.getFolderId();
-            } else {
-                parentFolderId = parentFolder.get().getFolderId();
+            String parentFolderPath = null;
+            String childFolderPath = folderPath;
+            lastSlash = path.lastIndexOf('/');
+            if (lastSlash != -1){
+                path = path.substring(0, lastSlash );
+                lastSlash = path.lastIndexOf('/');
+                folderName = path.substring(lastSlash + 1);
+
+                parentFolderPath = path + "/";
+                Folder folderParent = folderRepository.findFolderByUserIdAndPath(userId, parentFolderPath).get();
+                Folder folderChild = folderRepository.findFolderByUserIdAndPath(userId, childFolderPath).get();
+                if(folderRepository.findFolderByUserIdAndPath(userId, childFolderPath).isEmpty())
+                    folderParent = saveFolder(folderName, parentFolderPath, userId);
+                InheritorFolder inheritorFolder = new InheritorFolder();
+                inheritorFolder.setParentFolderId(folderParent.getFolderId());
+                inheritorFolder.setChildFolderId(folderChild.getFolderId());
+                inheritorFoldersRepository.save(inheritorFolder);
+
             }
-            InheritorFolder inheritorFolder = new InheritorFolder();
-            inheritorFolder.setParentFolderId(parentFolderId);
-            inheritorFolder.setChildFolderId(folderId);
-            inheritorFoldersRepository.save(inheritorFolder);
-        });
+
+        }
     }
 
     private Folder saveFolder(String folderName, String folderPath, Long userId) {

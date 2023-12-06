@@ -19,8 +19,15 @@ public interface FolderRepository extends CrudRepository<Folder, Long> {
     @Query(value = "SELECT * FROM folders WHERE user_id = ? and folder_path = ?", nativeQuery = true)
     Optional<Folder> findFolderByUserIdAndPath(Long user_id, String folderPath);
 
-    @Query(value = "SELECT * FROM Folder WHERE folderAccess = ?", nativeQuery = true)
+    @Query(value = "SELECT * FROM folders WHERE folderAccess = ?", nativeQuery = true)
     List<Folder> findAllByFolderAccess(Integer accessValue);
+
+    @Query(value = "SELECT * FROM folders", nativeQuery = true)
+    List<Folder> getAll();
+    @Modifying
+    @Transactional
+    @Query(value = "UPDATE folders SET folder_path = ? WHERE folder_id = ?", nativeQuery = true)
+    void renameFolder(String newName, Long folderId);
 
     @Modifying
     @Transactional
@@ -29,11 +36,11 @@ public interface FolderRepository extends CrudRepository<Folder, Long> {
 
     @Modifying
     @Transactional
-    @Query(value = "UPDATE folders SET folder_path = ?, folder_name = ? WHERE folder_id = ?;", nativeQuery = true)
+    @Query(value = "UPDATE folders SET folder_path = ?, folder_name = ? WHERE folder_id = ?", nativeQuery = true)
     void renameInFolders(String fullPath, String folderName, Long folderId);
 
     @Modifying
     @Transactional
-    @Query(value = "DELETE FROM folders WHERE folder_id = ?;", nativeQuery = true)
+    @Query(value = "DELETE FROM folders WHERE folder_id = ?", nativeQuery = true)
     void deleteFolderById(Long folderId);
 }

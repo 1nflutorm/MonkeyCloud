@@ -24,6 +24,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
+import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
@@ -146,15 +147,28 @@ public class FolderService {
         Optional<User> optionalUser = userRepository.findByUsername(username);
         if(optionalUser.isEmpty())
             return new ResponseEntity<>(new AppError(HttpStatus.BAD_REQUEST.value(), "Ошибка при переименовании папки (пользователя не существует)"), HttpStatus.BAD_REQUEST);
-        Optional<Folder> optionalFolder = folderRepository.findFolderByUserIdAndPath(optionalUser.get().getUser_id(), folderPath);
+        Long userId = optionalUser.get().getUser_id();
+        Optional<Folder> optionalFolder = folderRepository.findFolderByUserIdAndPath(userId, folderPath);
         if(optionalFolder.isEmpty())
             return new ResponseEntity<>(new AppError(HttpStatus.BAD_REQUEST.value(), "Ошибка при переименовании папки (папки не существует)"), HttpStatus.BAD_REQUEST);
-        folderRepository.renameInFolders(fullPath + newName + "/", newName, optionalFolder.get().getFolderId());
-
+        //folderRepository.renameInFolders(fullPath + newName + "/", newName, optionalFolder.get().getFolderId());
+        updateInnerFolders(userId, folderPath, fullPath + newName + "/");
         FolderDeleteRequest folderDeleteRequest = new FolderDeleteRequest(username, folderPath);
         deleteFolder(folderDeleteRequest);
-
         return ResponseEntity.ok("Папка переименовалась корректно");
+    }
+
+    private void updateInnerFolders(Long userId, String oldName, String newName){
+        List<Folder> folderList = folderRepository.getAll();
+        for(Folder folder : folderList) {
+            if(!folder.getFolderPath().startsWith(oldName)){
+                continue;
+            }
+            String fullName = folder.getFolderPath();
+            Optional<Folder> folderToRename = folderRepository.findFolderByUserIdAndPath(userId, fullName);
+            fullName = fullName.replaceFirst(oldName, newName);
+            folderRepository.renameFolder(fullName, folderToRename.get().getFolderId());//ошибка
+        }
     }
 
     public ResponseEntity<?> deleteFolder(FolderDeleteRequest folderDeleteRequest) {
