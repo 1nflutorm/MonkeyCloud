@@ -50,7 +50,7 @@ create table user_roles
 create table telegram
 (
 	user_id int not null unique,
-	chat_id varchar(255) not null unique,
+	chat_id int not null unique,
 	
 	constraint fk_user
 	foreign key(user_id)

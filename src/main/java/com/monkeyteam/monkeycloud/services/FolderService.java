@@ -151,7 +151,6 @@ public class FolderService {
         Optional<Folder> optionalFolder = folderRepository.findFolderByUserIdAndPath(userId, folderPath);
         if(optionalFolder.isEmpty())
             return new ResponseEntity<>(new AppError(HttpStatus.BAD_REQUEST.value(), "Ошибка при переименовании папки (папки не существует)"), HttpStatus.BAD_REQUEST);
-        //folderRepository.renameInFolders(fullPath + newName + "/", newName, optionalFolder.get().getFolderId());
         updateInnerFolders(userId, folderPath, fullPath + newName + "/");
         FolderDeleteRequest folderDeleteRequest = new FolderDeleteRequest(username, folderPath);
         deleteFolder(folderDeleteRequest);
