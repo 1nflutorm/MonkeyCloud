@@ -1,13 +1,17 @@
 package com.monkeyteam.monkeycloud.entities;
 
 import lombok.Data;
+import org.hibernate.annotations.GeneratorType;
 
 import javax.persistence.*;
+import java.io.Serializable;
 
 @Entity
 @Data
 @Table(name = "telegram")
-public class TelegramUser {
+@IdClass(TelegramUser.class)
+public class TelegramUser implements Serializable {
+    @Id
     @Column(name = "user_id")
     private Long userId;
     @Id

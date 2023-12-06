@@ -98,7 +98,7 @@ public class AuthService {
         }
         TelegramUser telegramUser = new TelegramUser();
         telegramUser.setUserId(optionalUser.get().getUser_id());
-        telegramUser.setChatId(telegramUser.getChatId());
+        telegramUser.setChatId(telegramDto.getTelegramId());
         telegramRepository.save(telegramUser);
         return ResponseEntity.ok("Телеграм пользователя сохранен!");
     }
