@@ -1,5 +1,6 @@
 package com.monkeyteam.monkeycloud.services;
 
+import com.monkeyteam.monkeycloud.dtos.SizeDto;
 import com.monkeyteam.monkeycloud.dtos.folderDtos.FolderDeleteRequest;
 import com.monkeyteam.monkeycloud.dtos.folderDtos.FolderFavoriteRequest;
 import com.monkeyteam.monkeycloud.dtos.folderDtos.FolderRenameRequest;
@@ -37,16 +38,21 @@ public class FolderService {
     private FileAndFolderUtil fileAndFolderUtil;
     private FolderRepository folderRepository;
     private FavoriteFolderRepository favoriteFolderRepository;
-
     private UserRepository userRepository;
+    private MinioService minioService;
 
     @Autowired
-    public void setFolderRepository(FolderRepository folderRepository){
+    public void setMinioService(MinioService minioService) {
+        this.minioService = minioService;
+    }
+
+    @Autowired
+    public void setFolderRepository(FolderRepository folderRepository) {
         this.folderRepository = folderRepository;
     }
 
     @Autowired
-    public void setFavoriteFolderRepository(FavoriteFolderRepository favoriteFolderRepository){
+    public void setFavoriteFolderRepository(FavoriteFolderRepository favoriteFolderRepository) {
         this.favoriteFolderRepository = favoriteFolderRepository;
     }
 
@@ -66,7 +72,7 @@ public class FolderService {
     }
 
     @Autowired
-    public void setUserRepository(UserRepository userRepository){
+    public void setUserRepository(UserRepository userRepository) {
         this.userRepository = userRepository;
     }
 
@@ -95,19 +101,27 @@ public class FolderService {
     }
 
     public ResponseEntity<?> uploadFolder(FolderUploadRequest folderUploadRequest) {
+        long size = minioService.getSizeOfBucket(folderUploadRequest.getUsername());
+        for (MultipartFile multipartFile : folderUploadRequest.getFiles()) {
+            size += multipartFile.getSize();
+        }
+        if (size > MinioService.LIMIT_SIZE) {
+            return new ResponseEntity<>(new AppError(HttpStatus.BAD_REQUEST.value(), "Превышен допустимый объём хранилища"), HttpStatus.BAD_REQUEST);
+        }
         try {
             List<SnowballObject> snowballObject = convertToSnowballObjects(folderUploadRequest);
+            ///
             minioClient.uploadSnowballObjects(UploadSnowballObjectsArgs
                     .builder()
                     .bucket(folderUploadRequest.getUsername())
                     .objects(snowballObject)
                     .build());
             fileAndFolderUtil.addDirsToDataBaseFromUploadedFolder(snowballObject, folderUploadRequest.getUsername());
-
+            ///
         } catch (Exception e) {
             return new ResponseEntity<>(new AppError(HttpStatus.BAD_REQUEST.value(), "Ошибка при загрузке папки"), HttpStatus.BAD_REQUEST);
         }
-        return ResponseEntity.ok("Папка загрузилась корректно");
+        return ResponseEntity.ok(new SizeDto(size, "Папка загрузилась корректно"));
     }
 
     public ResponseEntity<?> renameFolder(FolderRenameRequest folderRenameRequest) {
@@ -145,11 +159,11 @@ public class FolderService {
             }
         }
         Optional<User> optionalUser = userRepository.findByUsername(username);
-        if(optionalUser.isEmpty())
+        if (optionalUser.isEmpty())
             return new ResponseEntity<>(new AppError(HttpStatus.BAD_REQUEST.value(), "Ошибка при переименовании папки (пользователя не существует)"), HttpStatus.BAD_REQUEST);
         Long userId = optionalUser.get().getUser_id();
         Optional<Folder> optionalFolder = folderRepository.findFolderByUserIdAndPath(userId, folderPath);
-        if(optionalFolder.isEmpty())
+        if (optionalFolder.isEmpty())
             return new ResponseEntity<>(new AppError(HttpStatus.BAD_REQUEST.value(), "Ошибка при переименовании папки (папки не существует)"), HttpStatus.BAD_REQUEST);
         updateInnerFolders(userId, folderPath, fullPath + newName + "/");
         FolderDeleteRequest folderDeleteRequest = new FolderDeleteRequest(username, folderPath);
@@ -157,10 +171,10 @@ public class FolderService {
         return ResponseEntity.ok("Папка переименовалась корректно");
     }
 
-    private void updateInnerFolders(Long userId, String oldName, String newName){
+    private void updateInnerFolders(Long userId, String oldName, String newName) {
         List<Folder> folderList = folderRepository.getAll();
-        for(Folder folder : folderList) {
-            if(!folder.getFolderPath().startsWith(oldName)){
+        for (Folder folder : folderList) {
+            if (!folder.getFolderPath().startsWith(oldName)) {
                 continue;
             }
             String fullName = folder.getFolderPath();
@@ -195,17 +209,19 @@ public class FolderService {
             }
         });
         Optional<Folder> optionalFolder = folderRepository.findFolderByUserIdAndPath(optionalUser.get().getUser_id(), folderDeleteRequest.getFullPath());
-        if(optionalFolder.isPresent())
+        if (optionalFolder.isPresent()) {
             folderRepository.deleteFolderById(optionalFolder.get().getFolderId());
-        return ResponseEntity.ok("папка удалена");
+        }
+        long size = minioService.getSizeOfBucket(folderDeleteRequest.getUsername());
+        return ResponseEntity.ok(new SizeDto(size, "Папка успешно удалена"));
     }
 
     public ResponseEntity<?> addFolderToFavorite(FolderFavoriteRequest folderFavoriteRequest) {
         Optional<User> optionalUser = userRepository.findByUsername(folderFavoriteRequest.getUsername());
-        if(optionalUser.isEmpty()){
+        if (optionalUser.isEmpty()) {
             return new ResponseEntity<>(new AppError(HttpStatus.BAD_REQUEST.value(), "Ошибка при добавлении папки в избранное"), HttpStatus.BAD_REQUEST);
         }
-        Optional<Folder> op = folderRepository.findFolderByUserIdAndPath(optionalUser.get().getUser_id(),folderFavoriteRequest.getFullPath());
+        Optional<Folder> op = folderRepository.findFolderByUserIdAndPath(optionalUser.get().getUser_id(), folderFavoriteRequest.getFullPath());
         if (op.isPresent()) {
             Folder folder = op.get();
             FavoriteFolder favoriteFolder = new FavoriteFolder();
@@ -219,10 +235,10 @@ public class FolderService {
 
     public ResponseEntity<?> removeFolderFromFavorite(FolderFavoriteRequest folderFavoriteRequest) {
         Optional<User> optionalUser = userRepository.findByUsername(folderFavoriteRequest.getUsername());
-        if(optionalUser.isEmpty()){
+        if (optionalUser.isEmpty()) {
             return new ResponseEntity<>(new AppError(HttpStatus.BAD_REQUEST.value(), "Ошибка при удалении папки из избранного"), HttpStatus.BAD_REQUEST);
         }
-        Optional<Folder> op = folderRepository.findFolderByUserIdAndPath(optionalUser.get().getUser_id(),folderFavoriteRequest.getFullPath());
+        Optional<Folder> op = folderRepository.findFolderByUserIdAndPath(optionalUser.get().getUser_id(), folderFavoriteRequest.getFullPath());
         if (op.isPresent()) {
             Folder folder = op.get();
             favoriteFolderRepository.deleteFromFavorite(folder.getUserId(), folder.getFolderId());

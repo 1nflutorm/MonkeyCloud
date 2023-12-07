@@ -1,6 +1,7 @@
 package com.monkeyteam.monkeycloud.services;
 
 import com.monkeyteam.monkeycloud.dtos.MinioDto;
+import com.monkeyteam.monkeycloud.dtos.SizeDto;
 import com.monkeyteam.monkeycloud.dtos.fileDtos.*;
 import com.monkeyteam.monkeycloud.entities.FavoriteFile;
 import com.monkeyteam.monkeycloud.entities.Folder;
@@ -19,6 +20,7 @@ import org.springframework.core.io.ByteArrayResource;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -37,6 +39,12 @@ public class FileService {
     private FolderRepository folderRepository;
     private FavoriteFileRepository favoriteFileRepository;
     private UserRepository userRepository;
+    private MinioService minioService;
+
+    @Autowired
+    public void setMinioService(MinioService minioService) {
+        this.minioService = minioService;
+    }
     @Autowired
     public void setUserRepository(UserRepository userRepository) {
         this.userRepository = userRepository;
@@ -115,10 +123,14 @@ public class FileService {
     }
 
     public ResponseEntity<?> uploadFile(FileUploadRequest fileUploadRequest) {
+        long size = fileUploadRequest.getMultipartFile().getSize() + minioService.getSizeOfBucket(fileUploadRequest.getUsername());
+        if (size > MinioService.LIMIT_SIZE) {
+            return new ResponseEntity<>(new AppError(HttpStatus.BAD_REQUEST.value(), "Превышен допустимый объём хранилища"), HttpStatus.BAD_REQUEST);
+        }
         InputStream inputStream = null;
         try {
             inputStream = fileUploadRequest.getMultipartFile().getInputStream();
-            minioClient.putObject(PutObjectArgs.builder()
+            minioClient.putObject(PutObjectArgs.builder()/////////////
                     .bucket(fileUploadRequest.getUsername())//путь передается без названия бакета и названия файла
                     //например folder/secFolder/
                     //при этом имя бакета 1nflutrom, а название передаваемого файла png.png
@@ -133,7 +145,7 @@ public class FileService {
         } catch (IOException ioException) {
             ioException.printStackTrace();
         }
-        return ResponseEntity.ok("Файл загружен корректно");
+        return ResponseEntity.ok(new SizeDto(size,"Файл загружен корректно"));
     }
 
     public ByteArrayResource downloadFile(FileDownloadRequest fileDownloadRequest) {
@@ -162,7 +174,8 @@ public class FileService {
         } catch (Exception e) {
             return new ResponseEntity<>(new AppError(HttpStatus.BAD_REQUEST.value(), "Ошибка при удалении файла"), HttpStatus.BAD_REQUEST);
         }
-        return ResponseEntity.ok("Файл удалён успешно");
+        long size = minioService.getSizeOfBucket(fileDeleteRequest.getUsername());
+        return ResponseEntity.ok(new SizeDto(size, "Файл успешно удалён"));
     }
 
     public ResponseEntity<?> addToFavoriteFile(FileFavoriteRequest fileFavoriteRequest) {
