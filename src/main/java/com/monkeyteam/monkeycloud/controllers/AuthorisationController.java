@@ -6,7 +6,6 @@ import com.monkeyteam.monkeycloud.dtos.authDtos.RegistrationUserDto;
 import com.monkeyteam.monkeycloud.entities.RefreshToken;
 import com.monkeyteam.monkeycloud.exeptions.AppError;
 import com.monkeyteam.monkeycloud.exeptions.RefreshTokenExeption;
-import com.monkeyteam.monkeycloud.repositories.TelegramRepository;
 import com.monkeyteam.monkeycloud.services.AuthService;
 import com.monkeyteam.monkeycloud.services.RefreshTokenService;
 import lombok.RequiredArgsConstructor;
@@ -63,4 +62,6 @@ public class AuthorisationController {
         }
         return authService.addTelegramId(telegramDto);
     }
+
+
 }
