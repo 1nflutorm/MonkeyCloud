@@ -8,6 +8,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 @RestController
@@ -20,14 +21,16 @@ public class SearchController {
     public void setSearchService (SearchService searchService){
         this.searchService = searchService;
     }
-    @GetMapping("/private-search-by-filename")
-    public ResponseEntity<?> privateSearchByFileName(@RequestBody PrivateSearchByFileName privateSearchByFileName){
-        return searchService.privateSearchByFileName(privateSearchByFileName.getUsername(), privateSearchByFileName.getFilename());
+    @GetMapping("/privateSearchByFilename")
+    public ResponseEntity<?> privateSearchByFileName(@RequestParam("username") String username,
+                                                     @RequestParam("filename") String filename){
+        return searchService.privateSearchByFileName(username, filename);
     }
 
-    @GetMapping("/private-search-by-date")
-    public ResponseEntity<?> privateSearchByDate(@RequestBody PrivateSearchByDate privateSearchByDate){
-        return searchService.privateSearchByDate(privateSearchByDate.getUsername(), privateSearchByDate.getDate());
+    @GetMapping("/privateSearchByDate")
+    public ResponseEntity<?> privateSearchByDate(@RequestParam("username") String username,
+                                                 @RequestParam("date") String date){
+        return searchService.privateSearchByDate(username, date);
     }
 
     @GetMapping("/public-search-by-filename")

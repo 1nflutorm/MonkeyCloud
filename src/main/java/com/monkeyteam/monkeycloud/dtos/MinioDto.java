@@ -9,6 +9,7 @@ import java.util.Date;
 @EqualsAndHashCode
 public class MinioDto {
     private String username;
+    private Long folderId;
     private Boolean isDir;
     private String path;
     private String name;

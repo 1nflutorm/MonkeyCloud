@@ -15,6 +15,7 @@ import com.monkeyteam.monkeycloud.utils.FileAndFolderUtil;
 
 import io.minio.*;
 import io.minio.messages.Item;
+import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.ByteArrayResource;
 import org.springframework.http.HttpStatus;
@@ -30,6 +31,7 @@ import java.util.List;
 import java.util.Optional;
 
 @Service
+@RequiredArgsConstructor
 public class FileService {
     private MinioClient minioClient;
 
@@ -45,6 +47,7 @@ public class FileService {
     public void setMinioService(MinioService minioService) {
         this.minioService = minioService;
     }
+
     @Autowired
     public void setUserRepository(UserRepository userRepository) {
         this.userRepository = userRepository;
@@ -85,21 +88,39 @@ public class FileService {
 
                 Long size = item.size();//размер в байтах
                 String postfix = "bytes";
-                if(size >= KB && size < MB) {size /= KB; postfix = "kb";}
-                else if(size >= MB) {size /= MB; postfix = "mb";}
+                if (size >= KB && size < MB) {
+                    size /= KB;
+                    postfix = "kb";
+                } else if (size >= MB) {
+                    size /= MB;
+                    postfix = "mb";
+                }
 
                 Boolean isFavorite = fileAndFolderUtil.checkFavorite(item, username);
 
                 String[] newNames = fileAndFolderUtil.getCorrectNamesForItem(item, folder);
+
+                String date = null;
+                Boolean isDir = item.isDir();
+                Long folderId = -1L;
+                if (!isDir) {
+                    date = parseDate(item.lastModified().toString());
+                } else {
+                    Optional<User> user = userRepository.findByUsername(username);
+                    Optional<Folder> optionalFolder = folderRepository.findFolderByUserIdAndPath(user.get().getUser_id(), item.objectName());
+                    folderId = optionalFolder.get().getFolderId();
+                }
+
                 MinioDto object = new MinioDto(
                         username,
-                        item.isDir(),
-                        item.objectName(),
+                        folderId,
+                        isDir,
+                        item.objectName(),//Path
                         newNames[0],
-                        newNames[1].equals("") ? username : username + "/" + newNames[1],
+                        newNames[1].equals("") ? username : username + "/" + newNames[1],//bread-crumbs
                         Long.toString(size) + " " + postfix,
                         isFavorite,
-                        null);
+                        date);
                 files.add(object);
             } catch (Exception e) {
                 e.printStackTrace();
@@ -145,7 +166,7 @@ public class FileService {
         } catch (IOException ioException) {
             ioException.printStackTrace();
         }
-        return ResponseEntity.ok(new SizeDto(size,"Файл загружен корректно"));
+        return ResponseEntity.ok(new SizeDto(size, "Файл загружен корректно"));
     }
 
     public ByteArrayResource downloadFile(FileDownloadRequest fileDownloadRequest) {
@@ -156,8 +177,7 @@ public class FileService {
         ByteArrayResource byteArrayResource = null;
         try (GetObjectResponse object = minioClient.getObject(getObjectArgs)) {
             byteArrayResource = new ByteArrayResource(object.readAllBytes());
-        }
-        catch (Exception e) {
+        } catch (Exception e) {
             e.printStackTrace();
         }
         return byteArrayResource;
@@ -208,7 +228,7 @@ public class FileService {
     public ResponseEntity<?> renameFile(FileRenameRequest fileRenameRequest) {
         try {
             Optional<User> optionalUser = userRepository.findByUsername(fileRenameRequest.getUsername());
-            if(optionalUser.isEmpty())
+            if (optionalUser.isEmpty())
                 return new ResponseEntity<>(new AppError(HttpStatus.BAD_REQUEST.value(), "Ошибка при переименовании файла"), HttpStatus.BAD_REQUEST);
 
             Long userId = optionalUser.get().getUser_id();
@@ -228,7 +248,7 @@ public class FileService {
                     .build());
             deleteFile(new FileDeleteRequest(fileRenameRequest.getUsername(), fileRenameRequest.getFullPath() + "/" + fileRenameRequest.getOldName()));
             Optional<Folder> optionalFolder = folderRepository.findFolderByUserIdAndPath(userId, fileRenameRequest.getFullPath());
-            if(optionalFolder.isPresent()){
+            if (optionalFolder.isPresent()) {
                 Long folderId = optionalFolder.get().getFolderId();
                 favoriteFileRepository.renameInFavoriteFiles(newPath, userId, folderId, oldPath);
             }
@@ -238,25 +258,12 @@ public class FileService {
         return ResponseEntity.ok("Файл переименован успешно");
     }
 
-//    public ResponseEntity<?> renameFile(FileRenameRequest fileRenameRequest) {
-//        try {
-//            minioClient.copyObject(CopyObjectArgs
-//                    .builder()
-//                    .bucket(fileRenameRequest.getUsername())
-//                    .object(fileRenameRequest.getFullPath() + fileRenameRequest.getNewName())
-//                    .source(CopySource
-//                            .builder()
-//                            .bucket(fileRenameRequest.getUsername())
-//                            .object(fileRenameRequest.getFullPath() + fileRenameRequest.getOldName()) //путь передается без названия бакета и названия файла
-//                            //например folder/secFolder/
-//                            //при этом имя бакета 1nflutrom, а название файла png.png
-//                            .build())
-//                    .build());
-//            deleteFile(new FileDeleteRequest(fileRenameRequest.getUsername(), fileRenameRequest.getFullPath() + fileRenameRequest.getOldName()));
-//        } catch (Exception e) {
-//            return new ResponseEntity<>(new AppError(HttpStatus.BAD_REQUEST.value(), "Ошибка при переименовании файла"), HttpStatus.BAD_REQUEST);
-//        }
-//        return ResponseEntity.ok("Файл переименован успешно");
-//    }
-
+    public static String parseDate(String date){
+        String newDate = null;
+        newDate = date;
+        int index = newDate.indexOf('T');
+        newDate = newDate.substring(0, index);
+        String[] ymd = newDate.split("-");//year, month, day
+        return ymd[2] + "." + ymd[1] + "." + ymd[0];
+    }
 }
