@@ -2,11 +2,11 @@ package com.monkeyteam.monkeycloud.dtos;
 
 import lombok.AllArgsConstructor;
 import lombok.Data;
-
-import java.util.List;
+import lombok.NoArgsConstructor;
 
 @Data
 @AllArgsConstructor
-public class ListOfData {
-    List<?> list;
+@NoArgsConstructor
+public class BucketDto {
+    private String bucket;
 }

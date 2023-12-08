@@ -18,7 +18,7 @@ import java.security.NoSuchAlgorithmException;
 @RequiredArgsConstructor
 public class MinioService {
     private final MinioClient minioClient;
-    public static final long LIMIT_SIZE = 1073741824;
+    public static final long LIMIT_SIZE = 1073741824L;
 
     public ResponseEntity<?> createBucket(String username) throws ServerException, InsufficientDataException, ErrorResponseException, IOException, NoSuchAlgorithmException, InvalidKeyException, InvalidResponseException, XmlParserException, InternalException {
         minioClient.makeBucket(MakeBucketArgs.builder().bucket(username).build());
