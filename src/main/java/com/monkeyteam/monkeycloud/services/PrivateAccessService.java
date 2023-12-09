@@ -42,18 +42,20 @@ public class PrivateAccessService {
     }
 
     @Autowired
-    public void setPrivateAccessRepository(PrivateAccessRepository privateAccessRepository){
+    public void setPrivateAccessRepository(PrivateAccessRepository privateAccessRepository) {
         this.privateAccessRepository = privateAccessRepository;
     }
+
     @Autowired
-    public void setBotService(BotService botService){
+    public void setBotService(BotService botService) {
         this.botService = botService;
     }
 
     @Autowired
-    public void setTelegramRepository(TelegramRepository telegramRepository){
+    public void setTelegramRepository(TelegramRepository telegramRepository) {
         this.telegramRepository = telegramRepository;
     }
+
     public ResponseEntity<?> getPrivateAccess(PrivateAccessDto privateAccessDto) {
         String botUrl = "http://localhost:7070/get-access";
         String customerUsername = privateAccessDto.getCustomer();
@@ -68,7 +70,7 @@ public class PrivateAccessService {
         Long ownerId = optionalOwner.get().getUser_id();
 
         Optional<TelegramUser> optionalTelegramUser = telegramRepository.findByUserId(ownerId);
-        if(optionalTelegramUser.isEmpty()){
+        if (optionalTelegramUser.isEmpty()) {
             return new ResponseEntity<>(new AppError(HttpStatus.BAD_REQUEST.value(), "такого пользователя телеграмма не существует"), HttpStatus.BAD_REQUEST);
         }
         Long tgId = optionalTelegramUser.get().getChatId();
@@ -89,16 +91,13 @@ public class PrivateAccessService {
 
         return botService.sendGetRequestToBot(builder);
     }
+
     public ResponseEntity<?> grantAccess(GrantAccessDto grantAccessDto) {
         PrivateAccessEntity privateAccessEntity = new PrivateAccessEntity();
         privateAccessEntity.setFolderId(grantAccessDto.getFolderID());
         privateAccessEntity.setUserId(grantAccessDto.getCustomerID());
-        try {
-            folderRepository.setFolderAccess(2, grantAccessDto.getFolderID());
-            privateAccessRepository.save(privateAccessEntity);
-        } catch (SQLException e) {
-            return new ResponseEntity<>(new AppError(HttpStatus.BAD_REQUEST.value(), "Ошибка открытия доступа"), HttpStatus.BAD_REQUEST);
-        }
+        folderRepository.setFolderAccess(2, grantAccessDto.getFolderID());
+        privateAccessRepository.save(privateAccessEntity);
         return ResponseEntity.ok("Доступ открыт");
     }
 }

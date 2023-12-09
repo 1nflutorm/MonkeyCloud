@@ -157,7 +157,7 @@ public class FileService {
     public List<MinioDto> getFavoriteFiles(String username){
         List<MinioDto> list = null;
         try {
-            list = getUserFiles(username, "", false, true);
+            list = getUserFiles(username, "", true, true);
         } catch (Exception e) {
             e.printStackTrace();
         }
