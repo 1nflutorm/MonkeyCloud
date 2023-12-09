@@ -3,6 +3,7 @@ package com.monkeyteam.monkeycloud.services;
 
 import com.monkeyteam.monkeycloud.dtos.ListOfData;
 import com.monkeyteam.monkeycloud.dtos.MinioDto;
+import com.monkeyteam.monkeycloud.dtos.fileDtos.GetFilesRequest;
 import com.monkeyteam.monkeycloud.exeptions.AppError;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -26,7 +27,7 @@ public class SearchService {
     private List<MinioDto> getObjectList(String username){
         List<MinioDto> objectList = null;
         try {
-            objectList = fileService.getAllUserFiles(username, "");
+            objectList = fileService.getAllUserFiles(new GetFilesRequest(username, ""));
         } catch (Exception e) {
             e.printStackTrace();
             //ResponseEntity<>(new AppError(HttpStatus.BAD_REQUEST.value(), "ошибка поиска файла"), HttpStatus.BAD_REQUEST);

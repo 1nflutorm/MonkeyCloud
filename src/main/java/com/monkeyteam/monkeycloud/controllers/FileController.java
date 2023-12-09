@@ -85,4 +85,9 @@ public class FileController {
         return fileService.removeFromFavorites(fileFavoriteRequest);
     }
 
+    @GetMapping("/favorite")
+    public ResponseEntity<?> getFavoriteFiles(@RequestParam("username") String username){
+        return new ResponseEntity<>(new ListOfData(fileService.getFavoriteFiles(username)), HttpStatus.OK);
+    }
+
 }
