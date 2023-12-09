@@ -16,10 +16,13 @@ import java.util.Optional;
 public interface FolderRepository extends CrudRepository<Folder, Long> {
     Optional<Folder> findByFolderName(String folderName);
 
+    @Query(value = "SELECT * FROM folders WHERE folder_id = ?", nativeQuery = true)
+    Optional<Folder> findFolderByFolderId(Long id);
+
     @Query(value = "SELECT * FROM folders WHERE user_id = ? and folder_path = ?", nativeQuery = true)
     Optional<Folder> findFolderByUserIdAndPath(Long user_id, String folderPath);
 
-    @Query(value = "SELECT * FROM folders WHERE folderAccess = ?", nativeQuery = true)
+    @Query(value = "SELECT * FROM folders WHERE folder_access = ?", nativeQuery = true)
     List<Folder> findAllByFolderAccess(Integer accessValue);
 
     @Query(value = "SELECT * FROM folders", nativeQuery = true)
@@ -32,7 +35,7 @@ public interface FolderRepository extends CrudRepository<Folder, Long> {
     @Modifying
     @Transactional
     @Query(value = "UPDATE folders SET folder_access = ? WHERE folder_id = ?", nativeQuery = true)
-    void setFolderAccess(int folderAccess, Long folderId) throws SQLException;
+    void setFolderAccess(int folderAccess, Long folderId);
 
     @Modifying
     @Transactional

@@ -8,11 +8,11 @@ import java.util.Date;
 @Data
 @EqualsAndHashCode
 public class MinioDto {
-    private String username;
-    private Long folderId;
-    private Boolean isDir;
+    private String username;//
+    private Long folderId;//
+    private Boolean isDir;//
     private String path;
-    private String name;
+    private String name;//
     private String breadCrums;
     private String size;
     private Boolean isFavorite;

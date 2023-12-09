@@ -2,10 +2,7 @@ package com.monkeyteam.monkeycloud.services;
 
 import com.monkeyteam.monkeycloud.dtos.SizeDto;
 import com.monkeyteam.monkeycloud.dtos.fileDtos.GetFilesRequest;
-import com.monkeyteam.monkeycloud.dtos.folderDtos.FolderDeleteRequest;
-import com.monkeyteam.monkeycloud.dtos.folderDtos.FolderFavoriteRequest;
-import com.monkeyteam.monkeycloud.dtos.folderDtos.FolderRenameRequest;
-import com.monkeyteam.monkeycloud.dtos.folderDtos.FolderUploadRequest;
+import com.monkeyteam.monkeycloud.dtos.folderDtos.*;
 import com.monkeyteam.monkeycloud.dtos.MinioDto;
 import com.monkeyteam.monkeycloud.entities.FavoriteFolder;
 import com.monkeyteam.monkeycloud.entities.Folder;
