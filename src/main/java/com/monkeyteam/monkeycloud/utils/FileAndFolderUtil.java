@@ -68,19 +68,40 @@ public class FileAndFolderUtil {
         return false;
     }
 
-    public String[] getCorrectNamesForItem(Item item, String folder) {
+//    public String[] getCorrectNamesForItem(Item item, String folder) {
+//        String objectName = "";
+//        int lastSlash = item.objectName().lastIndexOf('/');
+//        if (!item.isDir()) {//если не дитректория, то удаляем последний слэш
+//            objectName = item.objectName().substring(lastSlash + 1);
+//        } else {// если директория, то удаляем предпоследний и послдедний слэш
+//            objectName = item.objectName().substring(0, lastSlash);
+//            objectName = objectName.substring(objectName.lastIndexOf('/') + 1);
+//        }
+//        lastSlash = folder.lastIndexOf('/');
+//        String folderName = "";
+//        if (lastSlash == folder.length() - 1 && lastSlash != -1)
+//            folderName = folder.substring(0, lastSlash);
+//        return new String[]{objectName, folderName};
+//    }
+
+    public String[] getCorrectNamesForItem(Item item) {
         String objectName = "";
+        String folderName = item.objectName();
         int lastSlash = item.objectName().lastIndexOf('/');
-        if (!item.isDir()) {//если не дитректория, то удаляем последний слэш
+        if (!item.isDir()) {
             objectName = item.objectName().substring(lastSlash + 1);
-        } else {// если директория, то удаляем предпоследний и послдедний слэш
+            //folderName = item.objectName().substring(0, lastSlash);
+        } else {
             objectName = item.objectName().substring(0, lastSlash);
+            folderName = objectName;
             objectName = objectName.substring(objectName.lastIndexOf('/') + 1);
+            lastSlash = folderName.lastIndexOf('/');
         }
-        lastSlash = folder.lastIndexOf('/');
-        String folderName = "";
-        if (lastSlash == folder.length() - 1 && lastSlash != -1)
-            folderName = folder.substring(0, lastSlash);
+        if (lastSlash == -1) {
+            folderName = "";
+        } else {
+            folderName = folderName.substring(0, lastSlash);
+        }
         return new String[]{objectName, folderName};
     }
 

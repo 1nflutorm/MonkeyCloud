@@ -74,7 +74,7 @@ public class FileService {
         this.fileAndFolderUtil = fileAndFolderUtil;
     }
 
-    private List<MinioDto> getUserFiles(String username, String folder, boolean isRecursive) throws Exception {
+    private List<MinioDto> getUserFiles(String username, String folder, boolean isRecursive, boolean isFavoriteOnly) throws Exception {
         Iterable<Result<Item>> results = minioClient.listObjects(ListObjectsArgs.builder()
                 .bucket(username)
                 .prefix(folder)
@@ -86,6 +86,13 @@ public class FileService {
             try {
                 Item item = result.get();
 
+                Boolean isFavorite = fileAndFolderUtil.checkFavorite(item, username);
+                if(isFavoriteOnly){
+                    if(!isFavorite){
+                        return;
+                    }
+                }
+
                 Long size = item.size();//размер в байтах
                 String postfix = "bytes";
                 if (size >= KB && size < MB) {
@@ -96,9 +103,7 @@ public class FileService {
                     postfix = "mb";
                 }
 
-                Boolean isFavorite = fileAndFolderUtil.checkFavorite(item, username);
-
-                String[] newNames = fileAndFolderUtil.getCorrectNamesForItem(item, folder);
+                String[] newNames = fileAndFolderUtil.getCorrectNamesForItem(item);
 
                 String date = null;
                 Boolean isDir = item.isDir();
@@ -132,15 +137,31 @@ public class FileService {
     public List<MinioDto> getUserFiles(GetFilesRequest getFilesRequest) {
         List<MinioDto> list = null;
         try {
-            list = getUserFiles(getFilesRequest.getUsername(), getFilesRequest.getFolder(), false);
+            list = getUserFiles(getFilesRequest.getUsername(), getFilesRequest.getFolder(), false, false);
         } catch (Exception e) {
             e.printStackTrace();
         }
         return list;
     }
 
-    public List<MinioDto> getAllUserFiles(String username, String folder) throws Exception {
-        return getUserFiles(username, folder, true);
+    public List<MinioDto> getAllUserFiles(GetFilesRequest getFilesRequest) throws Exception {
+        List<MinioDto> list = null;
+        try {
+            list = getUserFiles(getFilesRequest.getUsername(), getFilesRequest.getFolder(), true, false);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return list;
+    }
+
+    public List<MinioDto> getFavoriteFiles(String username){
+        List<MinioDto> list = null;
+        try {
+            list = getUserFiles(username, "", false, true);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return list;
     }
 
     public ResponseEntity<?> uploadFile(FileUploadRequest fileUploadRequest) {

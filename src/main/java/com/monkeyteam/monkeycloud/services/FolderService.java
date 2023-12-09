@@ -1,6 +1,7 @@
 package com.monkeyteam.monkeycloud.services;
 
 import com.monkeyteam.monkeycloud.dtos.SizeDto;
+import com.monkeyteam.monkeycloud.dtos.fileDtos.GetFilesRequest;
 import com.monkeyteam.monkeycloud.dtos.folderDtos.FolderDeleteRequest;
 import com.monkeyteam.monkeycloud.dtos.folderDtos.FolderFavoriteRequest;
 import com.monkeyteam.monkeycloud.dtos.folderDtos.FolderRenameRequest;
@@ -132,7 +133,7 @@ public class FolderService {
         String newName = folderRenameRequest.getNewName();
         String folderPath = fullPath + oldName + "/";
         try {
-            files = fileService.getAllUserFiles(username, folderPath);
+            files = fileService.getAllUserFiles(new GetFilesRequest(username, folderPath));
         } catch (Exception e) {
             return new ResponseEntity<>(new AppError(HttpStatus.BAD_REQUEST.value(), "Ошибка при переименовании папки"), HttpStatus.BAD_REQUEST);
         }
@@ -143,8 +144,6 @@ public class FolderService {
                 path = path.substring(start);
                 path = fullPath + newName + path;
 
-                String first = fullPath + newName + "/" + file.getPath();
-                String sec = file.getPath();
                 minioClient.copyObject(CopyObjectArgs
                         .builder()
                         .bucket(username)
@@ -187,7 +186,7 @@ public class FolderService {
     public ResponseEntity<?> deleteFolder(FolderDeleteRequest folderDeleteRequest) {
         List<MinioDto> files = null;
         try {
-            files = fileService.getAllUserFiles(folderDeleteRequest.getUsername(), folderDeleteRequest.getFullPath());
+            files = fileService.getAllUserFiles(new GetFilesRequest(folderDeleteRequest.getUsername(), folderDeleteRequest.getFullPath()));
         } catch (Exception e) {
             e.printStackTrace();
         }
