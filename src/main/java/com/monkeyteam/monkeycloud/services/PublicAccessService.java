@@ -2,7 +2,8 @@ package com.monkeyteam.monkeycloud.services;
 
 import com.monkeyteam.monkeycloud.dtos.ListOfData;
 import com.monkeyteam.monkeycloud.dtos.MinioDto;
-import com.monkeyteam.monkeycloud.dtos.folderDtos.OpenFolderRequest;
+import com.monkeyteam.monkeycloud.dtos.PublicAccessDto;
+import com.monkeyteam.monkeycloud.dtos.fileDtos.GetFilesRequest;
 import com.monkeyteam.monkeycloud.entities.Folder;
 import com.monkeyteam.monkeycloud.entities.InheritorFolder;
 import com.monkeyteam.monkeycloud.repositories.FolderRepository;
@@ -10,11 +11,13 @@ import com.monkeyteam.monkeycloud.repositories.InheritorFoldersRepository;
 import com.monkeyteam.monkeycloud.repositories.UserRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 import java.util.Optional;
 
 @Service
@@ -25,6 +28,13 @@ public class PublicAccessService {
     private InheritorFoldersRepository inheritorFoldersRepository;
 
     private UserRepository userRepository;
+
+    private FileService fileService;
+
+    @Autowired
+    public void setFileService (FileService fileService){
+        this.fileService = fileService;
+    }
 
     @Autowired
     public void setUserRepository(UserRepository userRepository){
@@ -82,11 +92,52 @@ public class PublicAccessService {
         return folder.get().getFolderAccess();
     }
 
-    public ResponseEntity<?> openFolder(OpenFolderRequest openFolderRequest){
-        folderRepository.setFolderAccess(3, openFolderRequest.getFolderId());
+    public ResponseEntity<?> openFolder(Long folderId){
+        folderRepository.setFolderAccess(3, folderId);
         return ResponseEntity.ok("Доступ открыт");
     }
+
+    public ResponseEntity<?> getFilesInPublicFolder(Long folderId){
+        //username
+        //folder
+        Folder folder = folderRepository.findFolderByFolderId(folderId).get();
+        String folderPath = folder.getFolderPath();
+        String username = userRepository.findById(folder.getUserId()).get().getUsername();
+
+        List<MinioDto> fileList = fileService.getUserFiles(new GetFilesRequest(username, folderPath));
+        String breadCrumbs = recoverBreadCrumbs(folderId);
+        return new ResponseEntity<>(new PublicAccessDto(new ListOfData(fileList), breadCrumbs), HttpStatus.OK);
+    }
+
+    private String recoverBreadCrumbs(Long folderId){
+        List<String> breadList = new ArrayList<>();
+        Long currentFolderId = folderId;
+        String result = "";
+        while (true){
+            Long parentFolderId = getParent(currentFolderId);
+            Folder folder = null;
+            if(parentFolderId == -1) {
+                break;
+            }
+            int parentFolderAccess = getParentFolderAccess(parentFolderId);
+            if (parentFolderAccess == 3) {
+                folder = folderRepository.findFolderByFolderId(parentFolderId).get();
+                breadList.add(folder.getFolderName());
+            }
+            currentFolderId = parentFolderId;
+        }
+        for(String part : breadList){
+            result = part + "/" + result;
+        }
+        int index = result.lastIndexOf("/");
+        if(index != -1)
+            result = result.substring(0, index);
+        return result;
+    }
 }
+
+
+
 
 
 
