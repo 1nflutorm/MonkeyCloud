@@ -35,8 +35,8 @@ import java.util.Optional;
 public class FileService {
     private MinioClient minioClient;
 
-    private final int KB = 1024;
-    private final int MB = 1048576;
+    public static final int KB = 1024;
+    public static final int MB = 1048576;
     private FileAndFolderUtil fileAndFolderUtil;
     private FolderRepository folderRepository;
     private FavoriteFileRepository favoriteFileRepository;
@@ -187,7 +187,7 @@ public class FileService {
         } catch (IOException ioException) {
             ioException.printStackTrace();
         }
-        return ResponseEntity.ok(new SizeDto(size, "Файл загружен корректно"));
+        return ResponseEntity.ok(new SizeDto(size/MB, "Файл загружен корректно"));
     }
 
     public ByteArrayResource downloadFile(FileDownloadRequest fileDownloadRequest) {
@@ -216,7 +216,7 @@ public class FileService {
             return new ResponseEntity<>(new AppError(HttpStatus.BAD_REQUEST.value(), "Ошибка при удалении файла"), HttpStatus.BAD_REQUEST);
         }
         long size = minioService.getSizeOfBucket(fileDeleteRequest.getUsername());
-        return ResponseEntity.ok(new SizeDto(size, "Файл успешно удалён"));
+        return ResponseEntity.ok(new SizeDto(size/MB, "Файл успешно удалён"));
     }
 
     public ResponseEntity<?> addToFavoriteFile(FileFavoriteRequest fileFavoriteRequest) {
