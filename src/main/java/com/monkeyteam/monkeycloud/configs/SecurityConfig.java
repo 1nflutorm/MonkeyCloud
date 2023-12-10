@@ -56,7 +56,6 @@ public class SecurityConfig implements WebMvcConfigurer {
                 .antMatchers("/privateSearchByFilename").hasRole("USER")
                 .antMatchers("/privateSearchByDate").hasRole("USER")
                 .antMatchers("/getFiles").hasAnyRole("USER", "ADMIN")
-                .antMatchers("/refresh").hasAnyRole("USER", "ADMIN")
                 .antMatchers("/admin").hasRole("ADMIN")
                 .and()
                 .sessionManagement().sessionCreationPolicy(SessionCreationPolicy.STATELESS)

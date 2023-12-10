@@ -11,4 +11,5 @@ public class RegistrationUserDto {
     private String second_name;
     private String name;
     private String last_name;
+    private String telegramId;
 }

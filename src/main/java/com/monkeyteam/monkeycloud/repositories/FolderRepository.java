@@ -29,13 +29,13 @@ public interface FolderRepository extends CrudRepository<Folder, Long> {
     List<Folder> getAll();
     @Modifying
     @Transactional
-    @Query(value = "UPDATE folders SET folder_path = ? WHERE folder_id = ?", nativeQuery = true)
-    void renameFolder(String newName, Long folderId);
+    @Query(value = "UPDATE folders SET folder_path = ?, folder_name = ? WHERE folder_id = ?", nativeQuery = true)
+    void renameFolder(String newName, String folderName, Long folderId);
 
     @Modifying
     @Transactional
     @Query(value = "UPDATE folders SET folder_access = ? WHERE folder_id = ?", nativeQuery = true)
-    void setFolderAccess(int folderAccess, Long folderId);
+    void setFolderAccess(int folderAccess, Long folderId) throws RuntimeException;
 
     @Modifying
     @Transactional

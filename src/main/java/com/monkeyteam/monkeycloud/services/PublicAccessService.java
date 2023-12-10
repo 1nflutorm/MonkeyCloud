@@ -15,6 +15,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 
+import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
@@ -76,7 +77,7 @@ public class PublicAccessService {
         return new ListOfData(resultList);
     }
 
-    private Long getParent(Long childId){
+    public Long getParent(Long childId){
         Optional<InheritorFolder> optionalInheritorFolder = inheritorFoldersRepository.getInheritFolderByChildId(childId);
         if(optionalInheritorFolder.isEmpty()){
             return -1L;
@@ -93,11 +94,15 @@ public class PublicAccessService {
     }
 
     public ResponseEntity<?> openFolder(Long folderId){
-        folderRepository.setFolderAccess(3, folderId);
+        try {
+            folderRepository.setFolderAccess(3, folderId);
+        } catch (RuntimeException e) {
+            e.printStackTrace();
+        }
         return ResponseEntity.ok("Доступ открыт");
     }
 
-    public ResponseEntity<?> getFilesInPublicFolder(Long folderId){
+    public ResponseEntity<?> getFilesInPublicFolder(Long folderId, int folderAccess){
         //username
         //folder
         Folder folder = folderRepository.findFolderByFolderId(folderId).get();
@@ -105,11 +110,11 @@ public class PublicAccessService {
         String username = userRepository.findById(folder.getUserId()).get().getUsername();
 
         List<MinioDto> fileList = fileService.getUserFiles(new GetFilesRequest(username, folderPath));
-        String breadCrumbs = recoverBreadCrumbs(folderId);
+        String breadCrumbs = recoverBreadCrumbs(folderId, folderAccess);
         return new ResponseEntity<>(new PublicAccessDto(new ListOfData(fileList), breadCrumbs), HttpStatus.OK);
     }
 
-    private String recoverBreadCrumbs(Long folderId){
+    private String recoverBreadCrumbs(Long folderId, int folderAccess){
         List<String> breadList = new ArrayList<>();
         Long currentFolderId = folderId;
         String result = "";
@@ -120,7 +125,7 @@ public class PublicAccessService {
                 break;
             }
             int parentFolderAccess = getParentFolderAccess(parentFolderId);
-            if (parentFolderAccess == 3) {
+            if (parentFolderAccess >= folderAccess) {
                 folder = folderRepository.findFolderByFolderId(parentFolderId).get();
                 breadList.add(folder.getFolderName());
             }

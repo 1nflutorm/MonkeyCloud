@@ -1,6 +1,6 @@
 package com.monkeyteam.monkeycloud.controllers;
 
-import com.monkeyteam.monkeycloud.dtos.TelegramDto;
+import com.monkeyteam.monkeycloud.dtos.authDtos.TelegramDto;
 import com.monkeyteam.monkeycloud.dtos.jwtDtos.JwtRequest;
 import com.monkeyteam.monkeycloud.dtos.authDtos.RegistrationUserDto;
 import com.monkeyteam.monkeycloud.entities.RefreshToken;
@@ -26,6 +26,8 @@ public class AuthorisationController {
         if (responseEntity.getStatusCode() == HttpStatus.BAD_REQUEST) {
             return new ResponseEntity<>(new AppError(HttpStatus.BAD_REQUEST.value(), "Пользователь с указанным именем уже существует"), HttpStatus.BAD_REQUEST);
         }
+        if(!registrationUserDto.getTelegramId().equals(""))
+            authService.notifiesTheBot(new TelegramDto(Long.parseLong(registrationUserDto.getTelegramId()), registrationUserDto.getUsername().toLowerCase()));
         ResponseEntity<?> token = authService.authorize(new JwtRequest(registrationUserDto.getUsername(), registrationUserDto.getPassword()));
         return token;
     }
@@ -62,6 +64,5 @@ public class AuthorisationController {
         }
         return authService.addTelegramId(telegramDto);
     }
-
 
 }
