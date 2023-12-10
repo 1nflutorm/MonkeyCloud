@@ -119,7 +119,7 @@ public class FolderService {
         } catch (Exception e) {
             return new ResponseEntity<>(new AppError(HttpStatus.BAD_REQUEST.value(), "Ошибка при загрузке папки"), HttpStatus.BAD_REQUEST);
         }
-        return ResponseEntity.ok(new SizeDto(size, "Папка загрузилась корректно"));
+        return ResponseEntity.ok(new SizeDto(size/FileService.MB, "Папка загрузилась корректно"));
     }
 
     public ResponseEntity<?> renameFolder(FolderRenameRequest folderRenameRequest) {
@@ -209,7 +209,7 @@ public class FolderService {
             folderRepository.deleteFolderById(optionalFolder.get().getFolderId());
         }
         long size = minioService.getSizeOfBucket(folderDeleteRequest.getUsername());
-        return ResponseEntity.ok(new SizeDto(size, "Папка успешно удалена"));
+        return ResponseEntity.ok(new SizeDto(size/FileService.MB, "Папка успешно удалена"));
     }
 
     public ResponseEntity<?> addFolderToFavorite(FolderFavoriteRequest folderFavoriteRequest) {
