@@ -1,7 +1,7 @@
 package com.monkeyteam.monkeycloud.services;
 
 import com.monkeyteam.monkeycloud.dtos.SessionControl;
-import com.monkeyteam.monkeycloud.dtos.TelegramDto;
+import com.monkeyteam.monkeycloud.dtos.authDtos.TelegramDto;
 import com.monkeyteam.monkeycloud.dtos.UserDto;
 import com.monkeyteam.monkeycloud.dtos.authDtos.RegistrationUserDto;
 import com.monkeyteam.monkeycloud.dtos.jwtDtos.JwtRequest;
@@ -46,23 +46,26 @@ public class AuthService {
     private final BotService botService;
 
     public ResponseEntity<?> authorize(JwtRequest authRequest) {
+        String username = authRequest.getUsername().toLowerCase();
         try {
-            authenticationManager.authenticate(new UsernamePasswordAuthenticationToken(authRequest.getUsername(), authRequest.getPassword()));
+            authenticationManager.authenticate(new UsernamePasswordAuthenticationToken(username, authRequest.getPassword()));
         } catch (BadCredentialsException e) {
             return new ResponseEntity<>(new AppError(HttpStatus.UNAUTHORIZED.value(), "Неправильный логин или пароль"), HttpStatus.UNAUTHORIZED);
         }
-        return createTokens(authRequest.getUsername());
+        return createTokens(username);
     }
     public ResponseEntity<?> createTokens(String username){
         UserDetails userDetails = userService.loadUserByUsername(username);
         String accessToken = jwtTokenUtils.generateToken(userDetails);
         userRepository.setSessionActive(username);
         RefreshToken refreshToken = refreshTokenService.generateRefreshToken(username);
-        return ResponseEntity.ok(new JwtResponse(username, accessToken, refreshToken.getToken()));
+        String role = userDetails.getAuthorities().toString();
+        role = role.replace("[ROLE_", "").replace("]", "").toLowerCase();
+        return ResponseEntity.ok(new JwtResponse(username, accessToken, refreshToken.getToken(), role));
     }
 
     public ResponseEntity<?> createNewUser(RegistrationUserDto registrationUserDto) {
-        if (userService.findByUsername(registrationUserDto.getUsername()).isPresent()) {
+        if (userService.findByUsername(registrationUserDto.getUsername().toLowerCase()).isPresent()) {
             return new ResponseEntity<>(new AppError(HttpStatus.BAD_REQUEST.value(), "Пользователь с указанным именем уже существует"), HttpStatus.BAD_REQUEST);
         }
         User user = userService.createNewUser(registrationUserDto);

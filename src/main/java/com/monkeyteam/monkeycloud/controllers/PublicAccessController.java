@@ -24,11 +24,11 @@ public class PublicAccessController {
 
     @GetMapping("/getFilesInPublicFolder")
     public ResponseEntity<?> getFilesInPublicFolder(@RequestParam("folderId") Long folderId){
-         return publicAccessService.getFilesInPublicFolder(folderId);
+         return publicAccessService.getFilesInPublicFolder(folderId, 3);
     }
 
     @PutMapping("/openFolder")
-    public ResponseEntity<?> openFolder(@RequestBody Long folderId){
+    public ResponseEntity<?> openFolder(@RequestParam("folderId") Long folderId){
         return publicAccessService.openFolder(folderId);
     }
 }

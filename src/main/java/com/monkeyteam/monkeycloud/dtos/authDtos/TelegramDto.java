@@ -1,4 +1,4 @@
-package com.monkeyteam.monkeycloud.dtos;
+package com.monkeyteam.monkeycloud.dtos.authDtos;
 
 import lombok.AllArgsConstructor;
 import lombok.Data;

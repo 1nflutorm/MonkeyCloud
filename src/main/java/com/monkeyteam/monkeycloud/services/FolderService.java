@@ -176,7 +176,7 @@ public class FolderService {
             String fullName = folder.getFolderPath();
             Optional<Folder> folderToRename = folderRepository.findFolderByUserIdAndPath(userId, fullName);
             fullName = fullName.replaceFirst(oldName, newName);
-            folderRepository.renameFolder(fullName, folderToRename.get().getFolderId());//ошибка
+            folderRepository.renameFolder(fullName, newName, folderToRename.get().getFolderId());//ошибка
         }
     }
 
