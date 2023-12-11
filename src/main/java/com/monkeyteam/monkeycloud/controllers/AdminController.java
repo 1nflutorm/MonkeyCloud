@@ -21,7 +21,7 @@ public class AdminController {
     }
     @GetMapping("/getFilesByAdmin")
     public ResponseEntity<?> getFilesByAdmin(){
-        return adminService.getFilesByAdmin();
+            return adminService.getFilesByAdmin();
     }
 
 }

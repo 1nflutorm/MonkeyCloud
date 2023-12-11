@@ -6,6 +6,7 @@ import org.springframework.data.repository.CrudRepository;
 import org.springframework.stereotype.Repository;
 
 import java.util.Optional;
+import java.util.List;
 
 @Repository
 public interface InheritorFoldersRepository extends CrudRepository <InheritorFolder, InheritorFolder> {
@@ -13,4 +14,7 @@ public interface InheritorFoldersRepository extends CrudRepository <InheritorFol
 
     @Query(value = "SELECT * FROM inheritor_folders WHERE child_folder_id = ?", nativeQuery = true)
     Optional<InheritorFolder> getInheritFolderByChildId(Long childId);
+
+    @Query(value = "SELECT child_folder_id FROM inheritor_folders WHERE parrent_folder_id = ?", nativeQuery = true)
+    List<Long> findChildren(Long parentFolderId);
 }

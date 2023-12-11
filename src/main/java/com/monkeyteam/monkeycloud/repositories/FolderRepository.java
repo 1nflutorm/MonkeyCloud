@@ -30,7 +30,7 @@ public interface FolderRepository extends CrudRepository<Folder, Long> {
     @Modifying
     @Transactional
     @Query(value = "UPDATE folders SET folder_path = ?, folder_name = ? WHERE folder_id = ?", nativeQuery = true)
-    void renameFolder(String newName, String folderName, Long folderId);
+    void renameFolder(String folderPath, String folderName, Long folderId);
 
     @Modifying
     @Transactional

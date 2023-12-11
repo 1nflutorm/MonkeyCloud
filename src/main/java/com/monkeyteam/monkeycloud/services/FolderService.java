@@ -10,6 +10,7 @@ import com.monkeyteam.monkeycloud.entities.User;
 import com.monkeyteam.monkeycloud.exeptions.AppError;
 import com.monkeyteam.monkeycloud.repositories.FavoriteFolderRepository;
 import com.monkeyteam.monkeycloud.repositories.FolderRepository;
+import com.monkeyteam.monkeycloud.repositories.InheritorFoldersRepository;
 import com.monkeyteam.monkeycloud.repositories.UserRepository;
 import com.monkeyteam.monkeycloud.utils.FileAndFolderUtil;
 import io.minio.*;
@@ -36,8 +37,15 @@ public class FolderService {
     private FileAndFolderUtil fileAndFolderUtil;
     private FolderRepository folderRepository;
     private FavoriteFolderRepository favoriteFolderRepository;
+
+    private InheritorFoldersRepository inheritorFoldersRepository;
     private UserRepository userRepository;
     private MinioService minioService;
+
+    @Autowired
+    public void setInheritorFoldersRepository(InheritorFoldersRepository inheritorFoldersRepository){
+        this.inheritorFoldersRepository = inheritorFoldersRepository;
+    }
 
     @Autowired
     public void setMinioService(MinioService minioService) {
@@ -119,6 +127,16 @@ public class FolderService {
         } catch (Exception e) {
             return new ResponseEntity<>(new AppError(HttpStatus.BAD_REQUEST.value(), "Ошибка при загрузке папки"), HttpStatus.BAD_REQUEST);
         }
+//        String parentFolderName = folderUploadRequest.getFullPath();
+//        Optional<Folder> parentFolder = folderRepository.findByFolderName(parentFolderName);
+//        List<Long> childrenList = inheritorFoldersRepository.findChildren(parentFolder.get().getFolderId());
+//        String fileName = folderUploadRequest.getFiles().get(0).getName();
+//        for(Long childId : childrenList){
+//            Optional<Folder> folder = folderRepository.findFolderByFolderId(childId);
+//            if(fileName.startsWith(folder.get().getFolderName())){
+//                folderRepository.setFolderAccess(parentFolder.get().getFolderAccess(), folder.get().getFolderId());
+//            }
+//        }
         return ResponseEntity.ok(new SizeDto(size/FileService.MB, "Папка загрузилась корректно"));
     }
 
@@ -176,7 +194,9 @@ public class FolderService {
             String fullName = folder.getFolderPath();
             Optional<Folder> folderToRename = folderRepository.findFolderByUserIdAndPath(userId, fullName);
             fullName = fullName.replaceFirst(oldName, newName);
-            folderRepository.renameFolder(fullName, newName, folderToRename.get().getFolderId());//ошибка
+            String folderName = newName.substring(0, newName.lastIndexOf('/'));
+            folderName = folderName.substring(folderName.lastIndexOf('/') + 1);
+            folderRepository.renameFolder(fullName, folderName, folderToRename.get().getFolderId());//ошибка
         }
     }
 

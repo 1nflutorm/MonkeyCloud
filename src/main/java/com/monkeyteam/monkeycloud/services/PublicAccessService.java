@@ -117,6 +117,8 @@ public class PublicAccessService {
     private String recoverBreadCrumbs(Long folderId, int folderAccess){
         List<String> breadList = new ArrayList<>();
         Long currentFolderId = folderId;
+        Optional<Folder> optionalFolder = folderRepository.findFolderByFolderId(folderId);
+        breadList.add(optionalFolder.get().getFolderName());
         String result = "";
         while (true){
             Long parentFolderId = getParent(currentFolderId);
@@ -139,6 +141,7 @@ public class PublicAccessService {
             result = result.substring(0, index);
         return result;
     }
+
 }
 
 
