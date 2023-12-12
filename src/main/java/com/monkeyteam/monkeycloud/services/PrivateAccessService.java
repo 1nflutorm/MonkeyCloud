@@ -104,7 +104,8 @@ public class PrivateAccessService {
         String botUrl = "http://localhost:7070/get-access";
         String customerUsername = privateAccessDto.getCustomer();
         String ownerUsername = privateAccessDto.getOwner();
-        String fullPath = privateAccessDto.getFullPath();
+        Long folderIdd = privateAccessDto.getFolderId();
+        String fullPath = folderRepository.findFolderByFolderId(folderIdd).get().getFolderPath();
 
         Optional<User> optionalCustomer = userRepository.findByUsername(customerUsername);
         Optional<User> optionalOwner = userRepository.findByUsername(ownerUsername);
