@@ -61,7 +61,8 @@ public class AuthService {
         RefreshToken refreshToken = refreshTokenService.generateRefreshToken(username);
         String role = userDetails.getAuthorities().toString();
         role = role.replace("[ROLE_", "").replace("]", "").toLowerCase();
-        return ResponseEntity.ok(new JwtResponse(username, accessToken, refreshToken.getToken(), role));
+        Long size = minioService.getSizeOfBucket(username) / FileService.MB;
+        return ResponseEntity.ok(new JwtResponse(username, accessToken, refreshToken.getToken(), role, size));
     }
 
     public ResponseEntity<?> createNewUser(RegistrationUserDto registrationUserDto) {
