@@ -80,6 +80,10 @@ public class PrivateAccessService {
             return new ResponseEntity<>(new AppError(HttpStatus.BAD_REQUEST.value(), "Пользователя или папки не существует"), HttpStatus.BAD_REQUEST);
         }
 
+        if(folder.get().getFolderAccess() == 1){
+            return new ResponseEntity<>(new AppError(HttpStatus.FORBIDDEN.value(), "У Вас нет доступа к этой папке"), HttpStatus.FORBIDDEN);
+        }
+
         PrivateAccessEntity privateAccess = new PrivateAccessEntity();
         privateAccess.setFolderId(folderId);
         privateAccess.setUserId(user.get().getUser_id());

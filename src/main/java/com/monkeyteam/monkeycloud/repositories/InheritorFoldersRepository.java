@@ -17,4 +17,7 @@ public interface InheritorFoldersRepository extends CrudRepository <InheritorFol
 
     @Query(value = "SELECT child_folder_id FROM inheritor_folders WHERE parrent_folder_id = ?", nativeQuery = true)
     List<Long> findChildren(Long parentFolderId);
+
+    @Query (value = "SELECT * FROM inheritor_folders WHERE parrent_folder_id = ? AND child_folder_id = ?", nativeQuery = true)
+    Optional<InheritorFolder> findInheritorFolder(Long parentId, Long childId);
 }
