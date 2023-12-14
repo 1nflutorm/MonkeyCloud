@@ -1,4 +1,4 @@
-package com.monkeyteam.monkeycloud.dtos;
+package com.monkeyteam.monkeycloud.dtos.authDtos;
 
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -11,4 +11,5 @@ public class RegistrationUserDto {
     private String second_name;
     private String name;
     private String last_name;
+    private String telegramId;
 }

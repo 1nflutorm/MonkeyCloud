@@ -1,6 +1,6 @@
 package com.monkeyteam.monkeycloud.services;
 
-import com.monkeyteam.monkeycloud.dtos.RegistrationUserDto;
+import com.monkeyteam.monkeycloud.dtos.authDtos.RegistrationUserDto;
 import com.monkeyteam.monkeycloud.entities.User;
 import com.monkeyteam.monkeycloud.repositories.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -58,8 +58,8 @@ public class UserService implements UserDetailsService {
 
     public User createNewUser(RegistrationUserDto registrationUserDto) {
         User user = new User();
-        user.setUsername(registrationUserDto.getUsername());
-        user.setPassword(registrationUserDto.getPassword());
+        user.setUsername(registrationUserDto.getUsername().toLowerCase());
+        //user.setPassword(registrationUserDto.getPassword());
         user.setPassword(passwordEncoder.encode(registrationUserDto.getPassword()));
         user.setSecond_name(registrationUserDto.getSecond_name());
         user.setName(registrationUserDto.getName());

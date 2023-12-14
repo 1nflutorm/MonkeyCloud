@@ -2,10 +2,12 @@ package com.monkeyteam.monkeycloud.configs;
 
 
 import com.monkeyteam.monkeycloud.utils.JwtTokenUtils;
+import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.ExpiredJwtException;
 import io.jsonwebtoken.SignatureException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.http.HttpStatus;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -17,6 +19,7 @@ import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
+import java.util.List;
 import java.util.stream.Collectors;
 
 @Component
@@ -35,10 +38,20 @@ public class JwtRequestFilter extends OncePerRequestFilter {
             try {
                 username = jwtTokenUtils.getUsername(jwt);
             } catch (ExpiredJwtException e) {
-                log.debug("Время жизни токена вышло");
+                response.sendError(HttpStatus.REQUEST_TIMEOUT.value(), "accessToken dead");//протух токен
+                return;
             } catch (SignatureException e) {
-                log.debug("Подпись неправильная");
+                response.sendError(HttpStatus.FORBIDDEN.value(), "incorrect secret");//неправильная подпись
+                return;
             }
+        }
+        if(authHeader == ""){
+            List<String> role = List.of("ROLE_UNAUTORIZED");
+            UsernamePasswordAuthenticationToken token = new UsernamePasswordAuthenticationToken(
+                    "unautorized",
+                    null,
+                    role.stream().map(SimpleGrantedAuthority::new).collect(Collectors.toList()));
+            SecurityContextHolder.getContext().setAuthentication(token);
         }
         if (username != null && SecurityContextHolder.getContext().getAuthentication() == null) {
             UsernamePasswordAuthenticationToken token = new UsernamePasswordAuthenticationToken(
@@ -51,12 +64,3 @@ public class JwtRequestFilter extends OncePerRequestFilter {
         filterChain.doFilter(request, response);
     }
 }
-
-
-
-
-
-
-
-
-
