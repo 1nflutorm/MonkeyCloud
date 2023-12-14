@@ -83,6 +83,7 @@ public class AuthService {
         folder.setFolderName(user.getUsername());
         folder.setFolderAccess(1);
         folderRepository.save(folder);
+        addTelegramId(new TelegramDto(Long.parseLong(registrationUserDto.getTelegramId()), user.getUsername()));
         return ResponseEntity.ok(new UserDto(user.getUser_id(), user.getUsername()));
     }
 
@@ -103,7 +104,11 @@ public class AuthService {
         TelegramUser telegramUser = new TelegramUser();
         telegramUser.setUserId(optionalUser.get().getUser_id());
         telegramUser.setChatId(telegramDto.getTelegramId());
-        telegramRepository.save(telegramUser);
+        try {
+            telegramRepository.save(telegramUser);
+        } catch (RuntimeException e) {
+            return new ResponseEntity<>(new AppError(HttpStatus.BAD_REQUEST.value(), "К данному аккаунту уже привязан телеграм id"), HttpStatus.BAD_REQUEST);
+        }
         return ResponseEntity.ok("Телеграм пользователя сохранен!");
     }
 
