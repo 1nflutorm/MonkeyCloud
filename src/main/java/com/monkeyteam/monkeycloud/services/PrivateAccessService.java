@@ -93,9 +93,9 @@ public class PrivateAccessService {
         if(folderRepository.findFolderByFolderId(folderId).get().getFolderAccess() == 2) {
             if (privateAccessEntity.isEmpty()) {
                 return new ResponseEntity<>(new AppError(HttpStatus.FORBIDDEN.value(), "У Вас нет доступа к этой папке"), HttpStatus.FORBIDDEN);
+            } else {
+                fileList = fileService.getUserFiles(new GetFilesRequest(owner, folder.get().getFolderPath()));
             }
-        } else {
-            fileList = fileService.getUserFiles(new GetFilesRequest(owner, folder.get().getFolderPath()));
         }
         return ResponseEntity.ok(new ListOfData(fileList));
     }

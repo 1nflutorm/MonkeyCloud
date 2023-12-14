@@ -54,7 +54,8 @@ public class AuthService {
         }
         return createTokens(username);
     }
-    public ResponseEntity<?> createTokens(String username){
+
+    public ResponseEntity<?> createTokens(String username) {
         UserDetails userDetails = userService.loadUserByUsername(username);
         String accessToken = jwtTokenUtils.generateToken(userDetails);
         userRepository.setSessionActive(username);
@@ -83,10 +84,13 @@ public class AuthService {
         folder.setFolderName(user.getUsername());
         folder.setFolderAccess(1);
         folderRepository.save(folder);
+        String telegramId = registrationUserDto.getTelegramId();
+        if (telegramId != null && !telegramId.equals(""))
+            addTelegramId(new TelegramDto(Long.parseLong(registrationUserDto.getTelegramId()), user.getUsername()));
         return ResponseEntity.ok(new UserDto(user.getUser_id(), user.getUsername()));
     }
 
-    public ResponseEntity<?> signout(String authHeaders){
+    public ResponseEntity<?> signout(String authHeaders) {
         String token = authHeaders.substring(7);
         String username = jwtTokenUtils.getUsername(token);
         Optional<User> optUser = userRepository.findByUsername(username);
@@ -95,22 +99,26 @@ public class AuthService {
         return ResponseEntity.ok(new SessionControl(username, false));
     }
 
-    public ResponseEntity<?> addTelegramId(TelegramDto telegramDto){
+    public ResponseEntity<?> addTelegramId(TelegramDto telegramDto) {
         Optional<User> optionalUser = userRepository.findByUsername(telegramDto.getUsername());
-        if(optionalUser.isEmpty()){
+        if (optionalUser.isEmpty()) {
             return new ResponseEntity<>(new AppError(HttpStatus.BAD_REQUEST.value(), "Пользователя с таким именем не существует"), HttpStatus.BAD_REQUEST);
         }
         TelegramUser telegramUser = new TelegramUser();
         telegramUser.setUserId(optionalUser.get().getUser_id());
         telegramUser.setChatId(telegramDto.getTelegramId());
-        telegramRepository.save(telegramUser);
+        try {
+            telegramRepository.save(telegramUser);
+        } catch (RuntimeException e) {
+            return new ResponseEntity<>(new AppError(HttpStatus.BAD_REQUEST.value(), "К данному аккаунту уже привязан телеграм id"), HttpStatus.BAD_REQUEST);
+        }
         return ResponseEntity.ok("Телеграм пользователя сохранен!");
     }
 
     public ResponseEntity<?> notifiesTheBot(TelegramDto telegramDto) {
         String username = telegramDto.getUsername();
         Optional<User> optionalUser = userRepository.findByUsername(username);
-        if(optionalUser.isEmpty()){
+        if (optionalUser.isEmpty()) {
             return new ResponseEntity<>(new AppError(HttpStatus.BAD_REQUEST.value(), "Пользователя с таким именем не существует"), HttpStatus.BAD_REQUEST);
         }
         String botUrl = "http://localhost:7070/notification";
