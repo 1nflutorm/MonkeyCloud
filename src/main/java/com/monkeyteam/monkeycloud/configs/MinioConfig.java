@@ -22,16 +22,6 @@ public class MinioConfig {
                 .endpoint(minioProperties.getUrl())
                 .credentials(minioProperties.getAccessKey(),minioProperties.getSecretKey())
                 .build();
-
-        try{
-            minioClient.makeBucket(MakeBucketArgs.builder().bucket("test").build());
-            System.out.println("CREATED");
-        } catch (Exception e) {
-            System.out.println("NOT CREATED");
-            return minioClient;
-        }
-
-        System.out.println(minioProperties.getUrl());
         return minioClient;
     }
 }
