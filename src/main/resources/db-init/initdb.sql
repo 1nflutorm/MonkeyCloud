@@ -46,7 +46,7 @@ create table user_roles
 create table telegram
 (
     user_id int not null unique,
-    chat_id varchar(255) not null unique,
+    chat_id bigint not null unique,
 
     constraint fk_user
         foreign key(user_id)
@@ -208,3 +208,97 @@ values
         2,
         2
     );
+
+create or replace function access_cascade_change()
+  returns trigger
+  language plpgsql
+  as $access_cascade_changee$
+  declare
+parrents_count int;
+    r record;
+    parrent_id int;
+    parrent_access int;
+
+begin
+select parrent_folder_id
+into parrent_id
+from inheritor_folders
+where child_folder_id = old.folder_id;
+
+select folder_access
+into parrent_access
+from folders
+where folder_id = parrent_id;
+
+if parrent_access > new.folder_access then
+      raise exception 'Перехвачена попытка изменить доступ папки с % на %, при уровне доступа родительской папки %', old.folder_access, new.folder_access, parrent_access;
+else
+
+select count(1)
+into parrents_count
+from inheritor_folders
+where inheritor_folders.parrent_folder_id  = old.folder_id;
+
+if parrents_count <> 0 then
+        for r in
+select child_folder_id
+from inheritor_folders
+where parrent_folder_id = old.folder_id
+    loop
+
+          if new.folder_access <> old.folder_access then
+              if new.folder_access = 2 then
+insert into private_access(folder_id, user_id)
+values
+    (r.child_folder_id, new.user_id);
+
+update folders
+set folder_access = new.folder_access
+where folder_id = r.child_folder_id;
+
+elseif old.folder_access = 2 then
+delete from private_access
+where folder_id = r.child_folder_id;
+
+update folders
+set folder_access = new.folder_access
+where folder_id = r.child_folder_id;
+else
+update folders
+set folder_access = new.folder_access
+where folder_id = r.child_folder_id;
+end if;
+
+end if;
+
+end loop;
+
+end if;
+
+end if;
+return old;
+end;
+  $access_cascade_changee$;
+
+create or replace trigger folders_access_change_trigger
+  after update on folders
+                   for each row
+                   execute procedure access_cascade_change();
+
+create or replace function parrent_cascade_delete()
+
+returns trigger
+    language plpgsql
+    as $parrent_cascade_delete$
+begin
+delete from folders
+where folders.folder_id = old.child_folder_id;
+return OLD;
+end;
+    $parrent_cascade_delete$;
+
+create or replace trigger folders_folder_delete_trigger
+
+After delete on inheritor_folders
+    for each row
+    execute procedure parrent_cascade_delete();

@@ -6,39 +6,42 @@ volumes:
   minio-data:
     driver: local
 
-
 services:
   postgres:
-    image: 'postgres:16.1'
-    container_name: 'database'
+    image: postgres:latest
     environment:
       - POSTGRES_USER=postgres
       - POSTGRES_PASSWORD=admin
       - POSTGRES_DB=MonkeyCloud
     volumes:
       - ./src/main/resources/db-init:/docker-entrypoint-initdb.d
+    restart: unless-stopped
+
   app:
     build: ./
     environment:
-      - SPRING_DATASOURCE_URL=jdbc:postgresql://postgres:5432/MonkeyCloud
-      - SPRING_DATASOURCE_USERNAME=postgres
-      - SPRING_DATASOURCE_PASSWORD=admin
+      - SPRING_DATASOURCE_URL=${SPRING_DATASOURCE_URL}
+      - SPRING_DATASOURCE_USERNAME=${SPRING_DB_USER}
+      - SPRING_DATASOURCE_PASSWORD=${SPRING_DB_PASSWORD}
+      - MINIO_CLIENT_ENDPOINT=${MINIO_URL}
+      - MINIO_CLIENT_USER=${MINIO_ACCESS_KEY}
+      - MINIO_CLIENT_PASSWORD=${MINIO_SECRET_KEY}
     depends_on:
       - postgres
       - minio
     container_name: 'backend'
+    env_file:
+      - .env
     ports:
       - '8080:8080'
 
   minio:
-    image: minio/minio:latest
-    container_name: minio
-    environment:
-      - MINIO_ROOT_USER=admin
-      - MINIO_ROOT_PASSWORD=password
-    command: server ~/minio --console-address :9090
-    ports:
-      - '9090:9090'
-      - '9000:9000'
+    image: quay.io/minio/minio
+    command: server /data --console-address ":9001"
     volumes:
       - minio-data:/minio
+    environment:
+      - MINIO_ROOT_USER=${MINIO_ACCESS_KEY}
+      - MINIO_ROOT_PASSWORD=${MINIO_SECRET_KEY}
+    ports:
+      - '9000:9000'

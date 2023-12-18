@@ -6,11 +6,13 @@ jwt:
   secret: fcdjibvjnq42918y093456189435h0ng015g
   lifetime: 120m
 spring:
+  config:
+    import: optional:file:.env[.properties]
   dataSource:
     driverClassName: org.postgresql.Driver
-    url: jdbc:postgresql://localhost:5432/MonkeyCloud
-    username: postgres
-    password: admin
+    url: ${SPRING_DATASOURCE_URL}
+    username: ${SPRING_DB_USER}
+    password: ${SPRING_DB_PASSWORD}
   jpa:
     show-sql: true
     open-in-view: false
@@ -19,10 +21,10 @@ spring:
         dialect: org.hibernate.dialect.PostgreSQLDialect
   main:
     allow-circular-references: true
-  minio:
-    url: http://localhost:9000
-    accessKey: admin
-    secretKey: password
+minio:
+  url: ${MINIO_URL}
+  accessKey: ${MINIO_ACCESS_KEY}
+  secretKey: ${MINIO_SECRET_KEY}
   servlet:
     multipart:
       max-file-size: 1GB

@@ -83,7 +83,8 @@ public class AuthService {
         folder.setFolderName(user.getUsername());
         folder.setFolderAccess(1);
         folderRepository.save(folder);
-        addTelegramId(new TelegramDto(Long.parseLong(registrationUserDto.getTelegramId()), user.getUsername()));
+        if(!registrationUserDto.getTelegramId().equals(""))
+            addTelegramId(new TelegramDto(Long.parseLong(registrationUserDto.getTelegramId()), user.getUsername()));
         return ResponseEntity.ok(new UserDto(user.getUser_id(), user.getUsername()));
     }
 
